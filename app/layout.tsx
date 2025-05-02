@@ -10,8 +10,18 @@ import { FloatingSettingsButton } from "@/components/floating-settings-button"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "DaniDema",
-  description: "Explore DaniDema's AI assistant, products, software solutions, and connect on social media.",
+  title: "DaniDema | Assistente AI, Bot Discord, Soluzioni Software su Misura",
+  description: "Scopri DaniDema: assistente AI personale, bot AI per Discord e WhatsApp, soluzioni software personalizzate per aziende e sviluppatori.",
+  keywords: [
+    "social danidema",
+    "discord danidema",
+    "CMDProtector",
+    "DaniDema",
+    "THE-LAST-DS",
+    "thelastds",
+    "discord mod",
+    "AI danidema"
+  ],
   verification: {
     google: "lw5tZQFV25NKeJTqWDTp0F8g-lS3pph3fUNYtEMlkWI"
   },
