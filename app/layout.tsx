@@ -1,4 +1,5 @@
 import type React from "react"
+import Script from "next/script"
 import "./globals.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -11,7 +12,8 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
   title: "DaniDema | Assistente AI, Bot Discord, Soluzioni Software su Misura",
-  description: "Scopri DaniDema: assistente AI personale, bot AI per Discord e WhatsApp, soluzioni software personalizzate per aziende e sviluppatori.",
+  description:
+    "Scopri DaniDema: assistente AI personale, bot AI per Discord e WhatsApp, soluzioni software personalizzate per aziende e sviluppatori.",
   keywords: [
     "social danidema",
     "discord danidema",
@@ -20,10 +22,10 @@ export const metadata = {
     "THE-LAST-DS",
     "thelastds",
     "discord mod",
-    "AI danidema"
+    "AI danidema",
   ],
   verification: {
-    google: "lw5tZQFV25NKeJTqWDTp0F8g-lS3pph3fUNYtEMlkWI"
+    google: "lw5tZQFV25NKeJTqWDTp0F8g-lS3pph3fUNYtEMlkWI",
   },
     generator: 'v0.dev'
 }
