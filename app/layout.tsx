@@ -48,6 +48,27 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "rd93c6mf8j");
           `}
         </Script>
+        
+
+        {/* Google Analytics Script */}
+        <Script 
+          id="google-analytics" 
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtag/js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','G-DY7J70X205');
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-DY7J70X205');
+            `
+          }}
+        />
+        
 
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
