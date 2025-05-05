@@ -13,12 +13,14 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { isValidEmail } from "@/lib/utils"
 import { Settings } from "lucide-react"
+import { Captcha } from "@/components/captcha"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [emailError, setEmailError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [captchaVerified, setCaptchaVerified] = useState(false)
   const { signIn } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
@@ -36,6 +38,15 @@ export default function SignInPage() {
     e.preventDefault()
 
     if (!validateEmail(email)) {
+      return
+    }
+
+    if (!captchaVerified) {
+      toast({
+        title: "CAPTCHA verification required",
+        description: "Please complete the CAPTCHA verification.",
+        variant: "destructive",
+      })
       return
     }
 
@@ -66,6 +77,10 @@ export default function SignInPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleCaptchaVerify = (verified: boolean) => {
+    setCaptchaVerified(verified)
   }
 
   return (
@@ -115,6 +130,10 @@ export default function SignInPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Verification</Label>
+              <Captcha onVerify={handleCaptchaVerify} />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

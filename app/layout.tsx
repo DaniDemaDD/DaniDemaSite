@@ -7,6 +7,7 @@ import Navbar from "@/components/navbar"
 import { AuthProvider } from "@/components/auth/auth-context"
 import { Toaster } from "@/components/ui/toaster"
 import { FloatingSettingsButton } from "@/components/floating-settings-button"
+import { CookieConsent } from "@/components/cookie-consent"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -48,11 +49,10 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "rd93c6mf8j");
           `}
         </Script>
-        
 
         {/* Google Analytics Script */}
-        <Script 
-          id="google-analytics" 
+        <Script
+          id="google-analytics"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
@@ -65,10 +65,9 @@ export default function RootLayout({
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
               gtag('config', 'G-DY7J70X205');
-            `
+            `,
           }}
         />
-        
 
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
@@ -76,6 +75,7 @@ export default function RootLayout({
             <div className="pt-16">{children}</div>
             <FloatingSettingsButton />
             <Toaster />
+            <CookieConsent />
           </AuthProvider>
         </ThemeProvider>
       </body>

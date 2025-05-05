@@ -36,7 +36,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Trash2, Edit, MoreVertical, Plus, Shield, ShieldOff, UserX, Key, Ban, UserCheck } from "lucide-react"
+import { Trash2, Edit, MoreVertical, Plus, Shield, ShieldOff, UserX, Key, Ban, UserCheck, Users } from "lucide-react"
+import { ColorPicker } from "@/components/ui/color-picker"
 
 type User = {
   id: string
@@ -118,6 +119,7 @@ type Role = {
   canBeDeleted: boolean
   canChangePassword: boolean
   isActive: boolean
+  color: string
 }
 
 export default function CreatorDashboard() {
@@ -174,8 +176,11 @@ export default function CreatorDashboard() {
     canBeDeleted: true,
     canChangePassword: true,
     isActive: true,
+    color: "#6366f1", // Default indigo color
   })
   const [editingRole, setEditingRole] = useState<Role | null>(null)
+  const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
 
   // Available permissions for roles
   const availablePermissions: Permission[] = [
@@ -686,12 +691,14 @@ export default function CreatorDashboard() {
           title: "User role updated",
           description: `User has been ${newRole === "admin" ? "promoted to admin" : "assigned to " + newRole}.`,
         })
+        return true
       } else {
         toast({
           title: "Error",
           description: "Failed to update user role. Please try again.",
           variant: "destructive",
         })
+        return false
       }
     } catch (error) {
       console.error("Error updating user role:", error)
@@ -700,6 +707,7 @@ export default function CreatorDashboard() {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       })
+      return false
     }
   }
 
@@ -893,6 +901,7 @@ export default function CreatorDashboard() {
         body: JSON.stringify({
           permissions: editingRole.permissions,
           isActive: editingRole.isActive,
+          color: editingRole.color,
         }),
       })
 
@@ -969,6 +978,7 @@ export default function CreatorDashboard() {
           canBeDeleted: true,
           canChangePassword: true,
           isActive: true,
+          color: "#6366f1",
         })
         toast({
           title: "Role added",
@@ -989,6 +999,29 @@ export default function CreatorDashboard() {
         variant: "destructive",
       })
     }
+  }
+
+  const handleOpenAssignRoleDialog = (role: Role) => {
+    setSelectedRole(role)
+    setAssignRoleDialogOpen(true)
+  }
+
+  const handleAssignRole = async (userId: string, roleName: string) => {
+    return await handleUpdateUserRole(userId, roleName)
+  }
+
+  const getRoleBadgeStyle = (roleName: string) => {
+    const role = roles.find((r) => r.name === roleName)
+    if (role) {
+      return { backgroundColor: role.color || "#6366f1", color: "#ffffff" }
+    }
+
+    // Default colors for built-in roles
+    if (roleName === "admin") return { backgroundColor: "#ef4444", color: "#ffffff" } // Red
+    if (roleName === "creator") return { backgroundColor: "#8b5cf6", color: "#ffffff" } // Purple
+    if (roleName === "banned") return { backgroundColor: "#6b7280", color: "#ffffff" } // Gray
+
+    return { backgroundColor: "#3b82f6", color: "#ffffff" } // Default blue
   }
 
   if (isLoading) {
@@ -1013,7 +1046,7 @@ export default function CreatorDashboard() {
         </div>
 
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex flex-wrap">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="support">Support Requests</TabsTrigger>
             <TabsTrigger value="software">Software</TabsTrigger>
@@ -1030,16 +1063,16 @@ export default function CreatorDashboard() {
                 <CardDescription>View and manage all registered users</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md border">
+                <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead className="w-[200px]">User</TableHead>
+                        <TableHead className="w-[200px]">Email</TableHead>
                         <TableHead>Role</TableHead>
-                        <TableHead>IP Address</TableHead>
-                        <TableHead>Registered</TableHead>
-                        <TableHead>Last Login</TableHead>
+                        <TableHead className="hidden md:table-cell">IP Address</TableHead>
+                        <TableHead className="hidden md:table-cell">Registered</TableHead>
+                        <TableHead className="hidden md:table-cell">Last Login</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1059,29 +1092,20 @@ export default function CreatorDashboard() {
                                     .substring(0, 2)}
                                 </AvatarFallback>
                               </Avatar>
-                              {user.name}
+                              <span className="truncate">{user.name}</span>
                             </div>
                           </TableCell>
-                          <TableCell>{user.email}</TableCell>
+                          <TableCell className="truncate">{user.email}</TableCell>
                           <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={
-                                user.role === "admin"
-                                  ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                  : user.role === "banned"
-                                    ? "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                                    : user.role === "creator"
-                                      ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                                      : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                              }
-                            >
+                            <Badge variant="outline" style={getRoleBadgeStyle(user.role)}>
                               {user.role}
                             </Badge>
                           </TableCell>
-                          <TableCell>{user.ipAddress || "Unknown"}</TableCell>
-                          <TableCell>{formatDate(user.registeredAt)}</TableCell>
-                          <TableCell>{user.lastLogin ? formatDate(user.lastLogin) : "Never"}</TableCell>
+                          <TableCell className="hidden md:table-cell">{user.ipAddress || "Unknown"}</TableCell>
+                          <TableCell className="hidden md:table-cell">{formatDate(user.registeredAt)}</TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {user.lastLogin ? formatDate(user.lastLogin) : "Never"}
+                          </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -1181,7 +1205,7 @@ export default function CreatorDashboard() {
                   <CardDescription>Manage user support requests</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
                     {supportRequests.length === 0 ? (
                       <p className="text-center py-4 text-muted-foreground">No support requests</p>
                     ) : (
@@ -1202,7 +1226,11 @@ export default function CreatorDashboard() {
                                   ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                                   : request.status === "in-progress"
                                     ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                                    : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                    : request.status === "closed"
+                                      ? "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                                      : request.status === "redeemed"
+                                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                                        : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                               }
                             >
                               {request.status}
@@ -1237,7 +1265,11 @@ export default function CreatorDashboard() {
                                   ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                                   : selectedRequest.status === "in-progress"
                                     ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                                    : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                    : selectedRequest.status === "closed"
+                                      ? "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                                      : selectedRequest.status === "redeemed"
+                                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                                        : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                               }
                             >
                               {selectedRequest.status}
@@ -1265,15 +1297,19 @@ export default function CreatorDashboard() {
                       {selectedRequest.responses.length > 0 && (
                         <div className="space-y-4">
                           <h3 className="text-lg font-medium">Responses</h3>
-                          {selectedRequest.responses.map((response) => (
-                            <div key={response.id} className="p-4 border rounded-lg">
-                              <div className="flex justify-between items-start">
-                                <p className="font-medium">Admin Response</p>
-                                <span className="text-xs text-muted-foreground">{formatDate(response.createdAt)}</span>
+                          <div className="max-h-[300px] overflow-y-auto space-y-4">
+                            {selectedRequest.responses.map((response) => (
+                              <div key={response.id} className="p-4 border rounded-lg">
+                                <div className="flex justify-between items-start">
+                                  <p className="font-medium">Admin Response</p>
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatDate(response.createdAt)}
+                                  </span>
+                                </div>
+                                <p className="mt-2">{response.message}</p>
                               </div>
-                              <p className="mt-2">{response.message}</p>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       )}
 
@@ -1288,9 +1324,68 @@ export default function CreatorDashboard() {
                             required
                           />
                         </div>
-                        <Button type="submit" disabled={isSubmitting}>
-                          {isSubmitting ? "Sending..." : "Send Response"}
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Sending..." : "Send Response"}
+                          </Button>
+
+                          {selectedRequest &&
+                            selectedRequest.status !== "closed" &&
+                            selectedRequest.status !== "redeemed" && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    fetch(`/api/admin/support/${selectedRequest.id}/status`, {
+                                      method: "PUT",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ status: "closed" }),
+                                    }).then((res) => {
+                                      if (res.ok) {
+                                        setSupportRequests((prev) =>
+                                          prev.map((req) =>
+                                            req.id === selectedRequest.id ? { ...req, status: "closed" } : req,
+                                          ),
+                                        )
+                                        setSelectedRequest({ ...selectedRequest, status: "closed" })
+                                        toast({
+                                          title: "Ticket closed",
+                                          description: "The ticket has been closed successfully.",
+                                        })
+                                      }
+                                    })
+                                  }}
+                                >
+                                  Close Ticket
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    fetch(`/api/admin/support/${selectedRequest.id}/status`, {
+                                      method: "PUT",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ status: "redeemed" }),
+                                    }).then((res) => {
+                                      if (res.ok) {
+                                        setSupportRequests((prev) =>
+                                          prev.map((req) =>
+                                            req.id === selectedRequest.id ? { ...req, status: "redeemed" } : req,
+                                          ),
+                                        )
+                                        setSelectedRequest({ ...selectedRequest, status: "redeemed" })
+                                        toast({
+                                          title: "Ticket redeemed",
+                                          description: "The ticket has been marked as redeemed.",
+                                        })
+                                      }
+                                    })
+                                  }}
+                                >
+                                  Mark as Redeemed
+                                </Button>
+                              </>
+                            )}
+                        </div>
                       </form>
                     </div>
                   ) : (
@@ -1303,6 +1398,598 @@ export default function CreatorDashboard() {
             </div>
           </TabsContent>
 
+          <TabsContent value="software">
+            <Card>
+              <CardHeader>
+                <CardTitle>Software Management</CardTitle>
+                <CardDescription>Add and manage software projects</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead className="hidden md:table-cell">Description</TableHead>
+                          <TableHead className="hidden md:table-cell">Version</TableHead>
+                          <TableHead className="hidden md:table-cell">Downloads</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {software.map((sw) => (
+                          <TableRow key={sw.id}>
+                            <TableCell className="font-medium">{sw.name}</TableCell>
+                            <TableCell className="hidden md:table-cell max-w-[300px] truncate">
+                              {sw.description}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">{sw.version}</TableCell>
+                            <TableCell className="hidden md:table-cell">{sw.downloads}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="icon" onClick={() => setEditingSoftware(sw)}>
+                                      <Edit className="h-4 w-4" />
+                                      <span className="sr-only">Edit</span>
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Edit Software</DialogTitle>
+                                      <DialogDescription>Make changes to the software details.</DialogDescription>
+                                    </DialogHeader>
+                                    {editingSoftware && (
+                                      <div className="space-y-4 py-4">
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Name</label>
+                                          <Input
+                                            value={editingSoftware.name}
+                                            onChange={(e) =>
+                                              setEditingSoftware({ ...editingSoftware, name: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Description</label>
+                                          <Textarea
+                                            value={editingSoftware.description}
+                                            onChange={(e) =>
+                                              setEditingSoftware({ ...editingSoftware, description: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Version</label>
+                                          <Input
+                                            value={editingSoftware.version}
+                                            onChange={(e) =>
+                                              setEditingSoftware({ ...editingSoftware, version: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Demo URL</label>
+                                          <Input
+                                            value={editingSoftware.demoUrl}
+                                            onChange={(e) =>
+                                              setEditingSoftware({ ...editingSoftware, demoUrl: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Download URL</label>
+                                          <Input
+                                            value={editingSoftware.downloadUrl}
+                                            onChange={(e) =>
+                                              setEditingSoftware({ ...editingSoftware, downloadUrl: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">GitHub URL</label>
+                                          <Input
+                                            value={editingSoftware.githubUrl}
+                                            onChange={(e) =>
+                                              setEditingSoftware({ ...editingSoftware, githubUrl: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                    <DialogFooter>
+                                      <Button onClick={handleUpdateSoftware}>Save changes</Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="outline" size="icon" className="text-red-600">
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">Delete</span>
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently delete the software from your system.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteSoftware(sw.id)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <h3 className="text-lg font-medium mb-4">Add New Software</h3>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Name</label>
+                        <Input
+                          placeholder="e.g. My Awesome App"
+                          value={newSoftware.name}
+                          onChange={(e) => setNewSoftware({ ...newSoftware, name: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Description</label>
+                        <Textarea
+                          placeholder="Describe your software..."
+                          value={newSoftware.description}
+                          onChange={(e) => setNewSoftware({ ...newSoftware, description: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Version</label>
+                          <Input
+                            placeholder="e.g. 1.0.0"
+                            value={newSoftware.version}
+                            onChange={(e) => setNewSoftware({ ...newSoftware, version: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Tags (comma separated)</label>
+                          <Input
+                            placeholder="e.g. Web, Tool, Utility"
+                            value={newSoftware.tags.join(", ")}
+                            onChange={(e) =>
+                              setNewSoftware({
+                                ...newSoftware,
+                                tags: e.target.value.split(",").map((tag) => tag.trim()),
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Demo URL</label>
+                          <Input
+                            placeholder="https://..."
+                            value={newSoftware.demoUrl}
+                            onChange={(e) => setNewSoftware({ ...newSoftware, demoUrl: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Download URL</label>
+                          <Input
+                            placeholder="https://..."
+                            value={newSoftware.downloadUrl}
+                            onChange={(e) => setNewSoftware({ ...newSoftware, downloadUrl: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">GitHub URL</label>
+                          <Input
+                            placeholder="https://github.com/..."
+                            value={newSoftware.githubUrl}
+                            onChange={(e) => setNewSoftware({ ...newSoftware, githubUrl: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <Button className="mt-4" onClick={handleAddSoftware}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Software
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ai">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Response Management</CardTitle>
+                <CardDescription>Configure AI responses for specific keywords</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Keywords</TableHead>
+                          <TableHead className="hidden md:table-cell">Response</TableHead>
+                          <TableHead className="hidden md:table-cell">Last Updated</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {aiResponses.map((response) => (
+                          <TableRow key={response.id}>
+                            <TableCell>
+                              <div className="flex flex-wrap gap-1">
+                                {response.keywords.slice(0, 3).map((keyword, index) => (
+                                  <Badge key={index} variant="outline">
+                                    {keyword}
+                                  </Badge>
+                                ))}
+                                {response.keywords.length > 3 && (
+                                  <Badge variant="outline">+{response.keywords.length - 3} more</Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell max-w-[300px] truncate">
+                              {response.response}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">{formatDate(response.updatedAt)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => setEditingAIResponse(response)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                      <span className="sr-only">Edit</span>
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Edit AI Response</DialogTitle>
+                                      <DialogDescription>
+                                        Make changes to the AI response configuration.
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    {editingAIResponse && (
+                                      <div className="space-y-4 py-4">
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Keywords (comma separated)</label>
+                                          <Input
+                                            value={editingAIResponse.keywords.join(", ")}
+                                            onChange={(e) =>
+                                              setEditingAIResponse({
+                                                ...editingAIResponse,
+                                                keywords: e.target.value.split(",").map((k) => k.trim()),
+                                              })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Response</label>
+                                          <Textarea
+                                            value={editingAIResponse.response}
+                                            onChange={(e) =>
+                                              setEditingAIResponse({
+                                                ...editingAIResponse,
+                                                response: e.target.value,
+                                              })
+                                            }
+                                            className="min-h-[200px]"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                    <DialogFooter>
+                                      <Button onClick={handleUpdateAIResponse}>Save changes</Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="outline" size="icon" className="text-red-600">
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">Delete</span>
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently delete the AI response from your system.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteAIResponse(response.id)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <h3 className="text-lg font-medium mb-4">Add New AI Response</h3>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Keywords (comma separated)</label>
+                        <Input
+                          placeholder="e.g. help, support, assistance"
+                          value={newAIResponse.keywords.join(", ")}
+                          onChange={(e) =>
+                            setNewAIResponse({
+                              ...newAIResponse,
+                              keywords: e.target.value.split(",").map((k) => k.trim()),
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Response</label>
+                        <Textarea
+                          placeholder="Enter the AI response..."
+                          value={newAIResponse.response}
+                          onChange={(e) => setNewAIResponse({ ...newAIResponse, response: e.target.value })}
+                          className="min-h-[200px]"
+                        />
+                      </div>
+                    </div>
+                    <Button className="mt-4" onClick={handleAddAIResponse}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add AI Response
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="site">
+            <Card>
+              <CardHeader>
+                <CardTitle>Social Links Management</CardTitle>
+                <CardDescription>Add and manage social media links</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead className="hidden md:table-cell">URL</TableHead>
+                          <TableHead>Icon</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {socialLinks.map((link) => (
+                          <TableRow key={link.id}>
+                            <TableCell className="font-medium">{link.name}</TableCell>
+                            <TableCell className="hidden md:table-cell max-w-[300px] truncate">
+                              <a
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {link.url}
+                              </a>
+                            </TableCell>
+                            <TableCell>
+                              <div className={`w-6 h-6 flex items-center justify-center rounded-full ${link.color}`}>
+                                <span className="text-white text-xs">{link.icon.substring(0, 1)}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="icon" onClick={() => setEditingSocialLink(link)}>
+                                      <Edit className="h-4 w-4" />
+                                      <span className="sr-only">Edit</span>
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Edit Social Link</DialogTitle>
+                                      <DialogDescription>Make changes to the social media link.</DialogDescription>
+                                    </DialogHeader>
+                                    {editingSocialLink && (
+                                      <div className="space-y-4 py-4">
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Name</label>
+                                          <Input
+                                            value={editingSocialLink.name}
+                                            onChange={(e) =>
+                                              setEditingSocialLink({ ...editingSocialLink, name: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">URL</label>
+                                          <Input
+                                            value={editingSocialLink.url}
+                                            onChange={(e) =>
+                                              setEditingSocialLink({ ...editingSocialLink, url: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Icon</label>
+                                          <Input
+                                            value={editingSocialLink.icon}
+                                            onChange={(e) =>
+                                              setEditingSocialLink({ ...editingSocialLink, icon: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-sm font-medium">Color</label>
+                                          <Input
+                                            value={editingSocialLink.color}
+                                            onChange={(e) =>
+                                              setEditingSocialLink({ ...editingSocialLink, color: e.target.value })
+                                            }
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                    <DialogFooter>
+                                      <Button onClick={handleUpdateSocialLink}>Save changes</Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="outline" size="icon" className="text-red-600">
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">Delete</span>
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently delete the social link from your system.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteSocialLink(link.id)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <h3 className="text-lg font-medium mb-4">Add New Social Link</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Name</label>
+                          <Input
+                            placeholder="e.g. Twitter"
+                            value={newSocialLink.name}
+                            onChange={(e) => setNewSocialLink({ ...newSocialLink, name: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">URL</label>
+                          <Input
+                            placeholder="https://..."
+                            value={newSocialLink.url}
+                            onChange={(e) => setNewSocialLink({ ...newSocialLink, url: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Icon</label>
+                          <Input
+                            placeholder="e.g. Twitter"
+                            value={newSocialLink.icon}
+                            onChange={(e) => setNewSocialLink({ ...newSocialLink, icon: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Color</label>
+                          <Input
+                            placeholder="e.g. bg-blue-600"
+                            value={newSocialLink.color}
+                            onChange={(e) => setNewSocialLink({ ...newSocialLink, color: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <Button className="mt-4" onClick={handleAddSocialLink}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Social Link
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Site Settings</CardTitle>
+                <CardDescription>Configure general site settings</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Site Title</label>
+                      <Input
+                        value={siteSettings.siteTitle}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, siteTitle: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Site Description</label>
+                      <Textarea
+                        value={siteSettings.siteDescription}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, siteDescription: e.target.value })}
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={() => handleUpdateSiteSettings(siteSettings)} disabled={isSubmitting}>
+                    {isSubmitting ? "Saving..." : "Save Settings"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="roles">
             <Card>
               <CardHeader>
@@ -1311,29 +1998,43 @@ export default function CreatorDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div className="rounded-md border">
+                  <div className="rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
                           <TableHead>Role Name</TableHead>
-                          <TableHead>Permissions</TableHead>
+                          <TableHead>Color</TableHead>
+                          <TableHead className="hidden md:table-cell">Permissions</TableHead>
                           <TableHead>Status</TableHead>
-                          <TableHead>Can Be Deleted</TableHead>
-                          <TableHead>Can Change Password</TableHead>
+                          <TableHead className="hidden md:table-cell">Can Be Deleted</TableHead>
+                          <TableHead className="hidden md:table-cell">Can Change Password</TableHead>
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {roles.map((role) => (
                           <TableRow key={role.name}>
-                            <TableCell className="font-medium">{role.name}</TableCell>
+                            <TableCell className="font-medium">
+                              <Badge style={{ backgroundColor: role.color || "#6366f1", color: "#ffffff" }}>
+                                {role.name}
+                              </Badge>
+                            </TableCell>
                             <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {role.permissions.map((permission) => (
+                              <div
+                                className="w-6 h-6 rounded-full"
+                                style={{ backgroundColor: role.color || "#6366f1" }}
+                              />
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              <div className="flex flex-wrap gap-1 max-w-[300px]">
+                                {role.permissions.slice(0, 3).map((permission) => (
                                   <Badge key={permission} variant="outline">
                                     {permission}
                                   </Badge>
                                 ))}
+                                {role.permissions.length > 3 && (
+                                  <Badge variant="outline">+{role.permissions.length - 3} more</Badge>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -1348,10 +2049,22 @@ export default function CreatorDashboard() {
                                 {role.isActive ? "Active" : "Inactive"}
                               </Badge>
                             </TableCell>
-                            <TableCell>{role.canBeDeleted ? "Yes" : "No"}</TableCell>
-                            <TableCell>{role.canChangePassword ? "Yes" : "No"}</TableCell>
+                            <TableCell className="hidden md:table-cell">{role.canBeDeleted ? "Yes" : "No"}</TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {role.canChangePassword ? "Yes" : "No"}
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleOpenAssignRoleDialog(role)}
+                                  title="Assign to User"
+                                >
+                                  <Users className="h-4 w-4" />
+                                  <span className="sr-only">Assign to User</span>
+                                </Button>
+
                                 <Dialog>
                                   <DialogTrigger asChild>
                                     <Button
@@ -1377,6 +2090,15 @@ export default function CreatorDashboard() {
                                           <h3 className="text-sm font-medium">Role Name</h3>
                                           <Input value={editingRole.name} disabled />
                                         </div>
+
+                                        <div className="space-y-2">
+                                          <h3 className="text-sm font-medium">Role Color</h3>
+                                          <ColorPicker
+                                            value={editingRole.color || "#6366f1"}
+                                            onChange={(color) => setEditingRole({ ...editingRole, color })}
+                                          />
+                                        </div>
+
                                         <div className="space-y-2">
                                           <h3 className="text-sm font-medium">Permissions</h3>
                                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -1486,6 +2208,12 @@ export default function CreatorDashboard() {
                           onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
                         />
                       </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Role Color</label>
+                        <ColorPicker value={newRole.color} onChange={(color) => setNewRole({ ...newRole, color })} />
+                      </div>
+
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Permissions</label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -1578,624 +2306,6 @@ export default function CreatorDashboard() {
                       Add Role
                     </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="software">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Software Management</CardTitle>
-                <CardDescription>Add, edit, or remove software available for download</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Version</TableHead>
-                          <TableHead>Downloads</TableHead>
-                          <TableHead>Created</TableHead>
-                          <TableHead>Last Updated</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {software.map((sw) => (
-                          <TableRow key={sw.id}>
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-muted rounded overflow-hidden flex-shrink-0">
-                                  <img
-                                    src={sw.image || "/placeholder.svg"}
-                                    alt={sw.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                                {sw.name}
-                              </div>
-                            </TableCell>
-                            <TableCell>{sw.version}</TableCell>
-                            <TableCell>{sw.downloads}</TableCell>
-                            <TableCell>{formatDate(sw.createdAt)}</TableCell>
-                            <TableCell>{formatDate(sw.updatedAt)}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="icon" onClick={() => setEditingSoftware(sw)}>
-                                      <Edit className="h-4 w-4" />
-                                      <span className="sr-only">Edit</span>
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-2xl">
-                                    <DialogHeader>
-                                      <DialogTitle>Edit Software</DialogTitle>
-                                      <DialogDescription>
-                                        Make changes to the software. Click save when you're done.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    {editingSoftware && (
-                                      <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Name</label>
-                                          <Input
-                                            value={editingSoftware.name}
-                                            onChange={(e) =>
-                                              setEditingSoftware({ ...editingSoftware, name: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Description</label>
-                                          <Textarea
-                                            value={editingSoftware.description}
-                                            onChange={(e) =>
-                                              setEditingSoftware({ ...editingSoftware, description: e.target.value })
-                                            }
-                                            className="min-h-[100px]"
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Image URL</label>
-                                          <Input
-                                            value={editingSoftware.image}
-                                            onChange={(e) =>
-                                              setEditingSoftware({ ...editingSoftware, image: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Tags (comma separated)</label>
-                                          <Input
-                                            value={editingSoftware.tags.join(", ")}
-                                            onChange={(e) =>
-                                              setEditingSoftware({
-                                                ...editingSoftware,
-                                                tags: e.target.value.split(",").map((tag) => tag.trim()),
-                                              })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Demo URL</label>
-                                          <Input
-                                            value={editingSoftware.demoUrl}
-                                            onChange={(e) =>
-                                              setEditingSoftware({ ...editingSoftware, demoUrl: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Download URL</label>
-                                          <Input
-                                            value={editingSoftware.downloadUrl}
-                                            onChange={(e) =>
-                                              setEditingSoftware({ ...editingSoftware, downloadUrl: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">GitHub URL</label>
-                                          <Input
-                                            value={editingSoftware.githubUrl}
-                                            onChange={(e) =>
-                                              setEditingSoftware({ ...editingSoftware, githubUrl: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Version</label>
-                                          <Input
-                                            value={editingSoftware.version}
-                                            onChange={(e) =>
-                                              setEditingSoftware({ ...editingSoftware, version: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-                                    <DialogFooter>
-                                      <Button onClick={handleUpdateSoftware}>Save changes</Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="icon" className="text-red-600">
-                                      <Trash2 className="h-4 w-4" />
-                                      <span className="sr-only">Delete</span>
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        This will permanently delete the software from your system.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDeleteSoftware(sw.id)}
-                                        className="bg-red-600 hover:bg-red-700"
-                                      >
-                                        Delete
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <h3 className="text-lg font-medium mb-4">Add New Software</h3>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Name</label>
-                        <Input
-                          placeholder="Software name"
-                          value={newSoftware.name}
-                          onChange={(e) => setNewSoftware({ ...newSoftware, name: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Description</label>
-                        <Textarea
-                          placeholder="Software description"
-                          value={newSoftware.description}
-                          onChange={(e) => setNewSoftware({ ...newSoftware, description: e.target.value })}
-                          className="min-h-[100px]"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Image URL</label>
-                        <Input
-                          placeholder="Image URL"
-                          value={newSoftware.image}
-                          onChange={(e) => setNewSoftware({ ...newSoftware, image: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Tags (comma separated)</label>
-                        <Input
-                          placeholder="Web, Mobile, Desktop"
-                          value={newSoftware.tags.join(", ")}
-                          onChange={(e) =>
-                            setNewSoftware({
-                              ...newSoftware,
-                              tags: e.target.value.split(",").map((tag) => tag.trim()),
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Demo URL</label>
-                        <Input
-                          placeholder="Demo URL"
-                          value={newSoftware.demoUrl}
-                          onChange={(e) => setNewSoftware({ ...newSoftware, demoUrl: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Download URL</label>
-                        <Input
-                          placeholder="Download URL"
-                          value={newSoftware.downloadUrl}
-                          onChange={(e) => setNewSoftware({ ...newSoftware, downloadUrl: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">GitHub URL</label>
-                        <Input
-                          placeholder="GitHub URL"
-                          value={newSoftware.githubUrl}
-                          onChange={(e) => setNewSoftware({ ...newSoftware, githubUrl: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Version</label>
-                        <Input
-                          placeholder="1.0.0"
-                          value={newSoftware.version}
-                          onChange={(e) => setNewSoftware({ ...newSoftware, version: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <Button className="mt-4" onClick={handleAddSoftware}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Software
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="ai">
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Response Management</CardTitle>
-                <CardDescription>Add, edit, or remove AI responses for specific keywords</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Keywords</TableHead>
-                          <TableHead>Response</TableHead>
-                          <TableHead>Created</TableHead>
-                          <TableHead>Last Updated</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {aiResponses.map((response) => (
-                          <TableRow key={response.id}>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {response.keywords.map((keyword) => (
-                                  <Badge key={keyword} variant="outline">
-                                    {keyword}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell className="max-w-[300px]">
-                              <p className="truncate">{response.response}</p>
-                            </TableCell>
-                            <TableCell>{formatDate(response.createdAt)}</TableCell>
-                            <TableCell>{formatDate(response.updatedAt)}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => setEditingAIResponse(response)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                      <span className="sr-only">Edit</span>
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-2xl">
-                                    <DialogHeader>
-                                      <DialogTitle>Edit AI Response</DialogTitle>
-                                      <DialogDescription>
-                                        Make changes to the AI response. Click save when you're done.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    {editingAIResponse && (
-                                      <div className="space-y-4 py-4">
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Keywords (comma separated)</label>
-                                          <Input
-                                            value={editingAIResponse.keywords.join(", ")}
-                                            onChange={(e) =>
-                                              setEditingAIResponse({
-                                                ...editingAIResponse,
-                                                keywords: e.target.value.split(",").map((k) => k.trim()),
-                                              })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Response</label>
-                                          <Textarea
-                                            value={editingAIResponse.response}
-                                            onChange={(e) =>
-                                              setEditingAIResponse({
-                                                ...editingAIResponse,
-                                                response: e.target.value,
-                                              })
-                                            }
-                                            className="min-h-[200px]"
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-                                    <DialogFooter>
-                                      <Button onClick={handleUpdateAIResponse}>Save changes</Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="icon" className="text-red-600">
-                                      <Trash2 className="h-4 w-4" />
-                                      <span className="sr-only">Delete</span>
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        This will permanently delete the AI response from your system.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDeleteAIResponse(response.id)}
-                                        className="bg-red-600 hover:bg-red-700"
-                                      >
-                                        Delete
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <h3 className="text-lg font-medium mb-4">Add New AI Response</h3>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Keywords (comma separated)</label>
-                        <Input
-                          placeholder="hello, hi, hey"
-                          value={newAIResponse.keywords.join(", ")}
-                          onChange={(e) =>
-                            setNewAIResponse({
-                              ...newAIResponse,
-                              keywords: e.target.value.split(",").map((k) => k.trim()),
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Response</label>
-                        <Textarea
-                          placeholder="Hello! How can I help you today?"
-                          value={newAIResponse.response}
-                          onChange={(e) => setNewAIResponse({ ...newAIResponse, response: e.target.value })}
-                          className="min-h-[200px]"
-                        />
-                      </div>
-                    </div>
-                    <Button className="mt-4" onClick={handleAddAIResponse}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add AI Response
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="site">
-            <Card>
-              <CardHeader>
-                <CardTitle>Site Management</CardTitle>
-                <CardDescription>Manage social links and other site content</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>URL</TableHead>
-                          <TableHead>Icon</TableHead>
-                          <TableHead>Color</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {socialLinks.map((link) => (
-                          <TableRow key={link.id}>
-                            <TableCell className="font-medium">{link.name}</TableCell>
-                            <TableCell>{link.url}</TableCell>
-                            <TableCell>{link.icon}</TableCell>
-                            <TableCell>
-                              <div className={`w-6 h-6 rounded ${link.color}`} />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" size="icon" onClick={() => setEditingSocialLink(link)}>
-                                      <Edit className="h-4 w-4" />
-                                      <span className="sr-only">Edit</span>
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Edit Social Link</DialogTitle>
-                                      <DialogDescription>
-                                        Make changes to the social link. Click save when you're done.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    {editingSocialLink && (
-                                      <div className="space-y-4 py-4">
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Name</label>
-                                          <Input
-                                            value={editingSocialLink.name}
-                                            onChange={(e) =>
-                                              setEditingSocialLink({ ...editingSocialLink, name: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">URL</label>
-                                          <Input
-                                            value={editingSocialLink.url}
-                                            onChange={(e) =>
-                                              setEditingSocialLink({ ...editingSocialLink, url: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Icon</label>
-                                          <Input
-                                            value={editingSocialLink.icon}
-                                            onChange={(e) =>
-                                              setEditingSocialLink({ ...editingSocialLink, icon: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                        <div className="space-y-2">
-                                          <label className="text-sm font-medium">Color</label>
-                                          <Input
-                                            value={editingSocialLink.color}
-                                            onChange={(e) =>
-                                              setEditingSocialLink({ ...editingSocialLink, color: e.target.value })
-                                            }
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-                                    <DialogFooter>
-                                      <Button onClick={handleUpdateSocialLink}>Save changes</Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="icon" className="text-red-600">
-                                      <Trash2 className="h-4 w-4" />
-                                      <span className="sr-only">Delete</span>
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        This will permanently delete the social link from your system.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => handleDeleteSocialLink(link.id)}
-                                        className="bg-red-600 hover:bg-red-700"
-                                      >
-                                        Delete
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <h3 className="text-lg font-medium mb-4">Add New Social Link</h3>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Name</label>
-                        <Input
-                          placeholder="Twitter"
-                          value={newSocialLink.name}
-                          onChange={(e) => setNewSocialLink({ ...newSocialLink, name: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">URL</label>
-                        <Input
-                          placeholder="https://twitter.com/username"
-                          value={newSocialLink.url}
-                          onChange={(e) => setNewSocialLink({ ...newSocialLink, url: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Icon</label>
-                        <Input
-                          placeholder="Twitter"
-                          value={newSocialLink.icon}
-                          onChange={(e) => setNewSocialLink({ ...newSocialLink, icon: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Color</label>
-                        <Input
-                          placeholder="bg-blue-600 dark:bg-blue-700"
-                          value={newSocialLink.color}
-                          onChange={(e) => setNewSocialLink({ ...newSocialLink, color: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <Button className="mt-4" onClick={handleAddSocialLink}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Social Link
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Site Settings</CardTitle>
-                <CardDescription>Manage general site settings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Site Title</label>
-                    <Input
-                      value={siteSettings.siteTitle}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, siteTitle: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Site Description</label>
-                    <Textarea
-                      value={siteSettings.siteDescription}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, siteDescription: e.target.value })}
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                  <Button onClick={() => handleUpdateSiteSettings(siteSettings)} disabled={isSubmitting}>
-                    {isSubmitting ? "Saving..." : "Save Settings"}
-                  </Button>
                 </div>
               </CardContent>
             </Card>
