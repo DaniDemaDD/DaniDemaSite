@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import animations */
+@import "./animations.css";
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -106,4 +109,72 @@
 
 .dark .border-gray-300 {
   @apply border-border;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus styles */
+:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Improved button styles */
+button,
+.button,
+[role="button"] {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Improved table styles */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Improved form element styles */
+input,
+textarea,
+select {
+  font-size: 16px; /* Prevents zoom on mobile */
+}
+
+/* Improved card styles */
+.card {
+  overflow: hidden;
+}
+
+/* Improved dialog styles */
+.dialog {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Improved toast styles */
+.toast {
+  max-width: 90vw;
 }

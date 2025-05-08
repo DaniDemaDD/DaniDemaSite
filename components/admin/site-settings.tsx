@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { logActivity } from "@/lib/activity-logger"
+import { sendMaintenanceModeNotification } from "@/lib/discord-webhook"
 
 type SiteSettings = {
   title: string
@@ -22,6 +24,9 @@ type SiteSettings = {
   requireEmailVerification: boolean
   requireCaptcha: boolean
   autoResetTicketsDays: number
+  maintenanceMode: boolean
+  maintenanceMessage: string
+  allowedMaintenanceDomains: string[]
   lastUpdated: string
   updatedBy: string
 }
@@ -30,6 +35,7 @@ export default function SiteSettingsManager() {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [maintenanceReason, setMaintenanceReason] = useState("")
   const { toast } = useToast()
 
   useEffect(() => {
@@ -77,6 +83,12 @@ export default function SiteSettingsManager() {
       if (response.ok) {
         const updatedSettings = await response.json()
         setSettings(updatedSettings)
+
+        // Log the activity
+        await logActivity(updatedSettings.updatedBy, "Admin", "site_settings_updated", {
+          settings: { ...updatedSettings, password: undefined },
+        })
+
         toast({
           title: "Settings updated",
           description: "Site settings have been updated successfully.",
@@ -90,6 +102,66 @@ export default function SiteSettingsManager() {
       }
     } catch (error) {
       console.error("Error updating site settings:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleToggleMaintenanceMode = async () => {
+    if (!settings) return
+
+    const newMaintenanceMode = !settings.maintenanceMode
+
+    try {
+      setIsSubmitting(true)
+      const updatedSettings = {
+        ...settings,
+        maintenanceMode: newMaintenanceMode,
+      }
+
+      const response = await fetch("/api/admin/site-settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedSettings),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setSettings(result)
+
+        // Send notification to Discord
+        await sendMaintenanceModeNotification(newMaintenanceMode, result.updatedBy, maintenanceReason)
+
+        // Log the activity
+        await logActivity(result.updatedBy, "Admin", "maintenance_mode_changed", {
+          enabled: newMaintenanceMode,
+          reason: maintenanceReason,
+        })
+
+        toast({
+          title: newMaintenanceMode ? "Maintenance Mode Enabled" : "Maintenance Mode Disabled",
+          description: newMaintenanceMode
+            ? "The site is now in maintenance mode. Only specified domains can access it."
+            : "The site is now accessible to all users.",
+        })
+
+        setMaintenanceReason("")
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update maintenance mode. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error updating maintenance mode:", error)
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -120,6 +192,7 @@ export default function SiteSettingsManager() {
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
             <TabsTrigger value="support">Support</TabsTrigger>
           </TabsList>
 
@@ -234,6 +307,71 @@ export default function SiteSettingsManager() {
                 checked={settings.requireCaptcha}
                 onCheckedChange={(checked) => setSettings({ ...settings, requireCaptcha: checked })}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="maintenance" className="space-y-4">
+            <div className="p-4 border rounded-lg bg-amber-50 dark:bg-amber-950">
+              <h3 className="text-lg font-medium mb-2">Maintenance Mode</h3>
+              <p className="text-sm mb-4">
+                When maintenance mode is enabled, the site will be inaccessible to regular users. Only users accessing
+                the site from allowed domains will be able to view it.
+              </p>
+
+              <div className="flex items-center justify-between mb-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="maintenanceMode">Enable Maintenance Mode</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {settings.maintenanceMode
+                      ? "The site is currently in maintenance mode"
+                      : "The site is currently accessible to all users"}
+                  </p>
+                </div>
+                <Switch
+                  id="maintenanceMode"
+                  checked={settings.maintenanceMode}
+                  onCheckedChange={() => handleToggleMaintenanceMode()}
+                />
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="maintenanceMessage">Maintenance Message</Label>
+                <Textarea
+                  id="maintenanceMessage"
+                  value={settings.maintenanceMessage}
+                  onChange={(e) => setSettings({ ...settings, maintenanceMessage: e.target.value })}
+                  placeholder="We're currently performing maintenance. Please check back later."
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="maintenanceReason">Reason for Maintenance (for logs)</Label>
+                <Input
+                  id="maintenanceReason"
+                  value={maintenanceReason}
+                  onChange={(e) => setMaintenanceReason(e.target.value)}
+                  placeholder="e.g., Server upgrades, Database migration"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="allowedMaintenanceDomains">Allowed Domains During Maintenance</Label>
+                <Input
+                  id="allowedMaintenanceDomains"
+                  value={settings.allowedMaintenanceDomains?.join(", ") || "danidemamaintenence.vercel.app"}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      allowedMaintenanceDomains: e.target.value.split(",").map((domain) => domain.trim()),
+                    })
+                  }
+                  placeholder="e.g., danidemamaintenence.vercel.app"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Comma-separated list of domains that can access the site during maintenance
+                </p>
+              </div>
             </div>
           </TabsContent>
 

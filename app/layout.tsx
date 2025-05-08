@@ -8,6 +8,9 @@ import { AuthProvider } from "@/components/auth/auth-context"
 import { Toaster } from "@/components/ui/toaster"
 import { FloatingSettingsButton } from "@/components/floating-settings-button"
 import { CookieConsent } from "@/components/cookie-consent"
+import { BrowserDetector } from "@/components/browser-detector"
+import { InteractiveTutorial } from "@/components/interactive-tutorial"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -69,13 +72,29 @@ export default function RootLayout({
           }}
         />
 
+        {/* Framer Motion Script */}
+        <Script
+          id="framer-motion"
+          src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"
+          strategy="afterInteractive"
+        />
+
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
+            {/* Browser detector */}
+            <BrowserDetector />
+
             <Navbar />
             <div className="pt-16">{children}</div>
             <FloatingSettingsButton />
             <Toaster />
             <CookieConsent />
+
+            {/* Interactive tutorial */}
+            <InteractiveTutorial />
+
+            {/* Vercel Speed Insights */}
+            <SpeedInsights />
           </AuthProvider>
         </ThemeProvider>
       </body>

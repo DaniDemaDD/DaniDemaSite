@@ -139,6 +139,7 @@ export type AIResponse = {
   updatedAt: string
 }
 
+// Add these fields to the SiteSettings type
 export type SiteSettings = {
   title: string
   description: string
@@ -151,12 +152,15 @@ export type SiteSettings = {
   requireEmailVerification: boolean
   requireCaptcha: boolean
   autoResetTicketsDays: number
+  maintenanceMode: boolean
+  maintenanceMessage: string
+  allowedMaintenanceDomains: string[]
   lastUpdated: string
   updatedBy: string
 }
 
 // Define roles and their permissions
-const roles: Record<UserRole, Role> = {
+export const roles: Record<UserRole, Role> = {
   creator: {
     name: "creator",
     permissions: [
@@ -225,8 +229,8 @@ const addDays = (date: Date, days: number) => {
   return result
 }
 
-// Site settings
-const siteSettings: SiteSettings = {
+// Update the siteSettings object to include maintenance mode settings
+export const siteSettings: SiteSettings = {
   title: "DaniDema",
   description: "Explore DaniDema's AI assistant, software solutions, and connect on social media.",
   logo: "/logo.png",
@@ -238,12 +242,15 @@ const siteSettings: SiteSettings = {
   requireEmailVerification: true,
   requireCaptcha: true,
   autoResetTicketsDays: 3,
+  maintenanceMode: false,
+  maintenanceMessage: "We're currently performing maintenance. Please check back later.",
+  allowedMaintenanceDomains: ["danidemamaintenence.vercel.app"],
   lastUpdated: getCurrentDate(),
   updatedBy: "admin",
 }
 
 // In-memory stores (would be a database in production)
-const users: User[] = [
+export const users: User[] = [
   {
     id: "1",
     name: "Demo User",
@@ -309,7 +316,7 @@ const users: User[] = [
   },
 ]
 
-const supportRequests: SupportRequest[] = [
+export const supportRequests: SupportRequest[] = [
   {
     id: "sr1",
     userId: "1",
@@ -324,7 +331,7 @@ const supportRequests: SupportRequest[] = [
 ]
 
 // Social links data
-const socialLinks: SocialLink[] = [
+export const socialLinks: SocialLink[] = [
   {
     id: "1",
     name: "Instagram",
@@ -370,7 +377,7 @@ const socialLinks: SocialLink[] = [
 ]
 
 // Sample software data - would be in a database in production
-const softwareData: Software[] = [
+export const softwareData: Software[] = [
   {
     id: "1",
     name: "CMDProtector",
@@ -420,7 +427,7 @@ const softwareData: Software[] = [
 ]
 
 // AI responses for the AI assistant
-const aiResponses: AIResponse[] = [
+export const aiResponses: AIResponse[] = [
   {
     id: "1",
     keywords: ["hello", "hi", "hey", "greetings"],
@@ -1363,4 +1370,21 @@ export async function checkAndResetTickets(): Promise<number> {
   })
 
   return resetCount
+}
+
+export async function isAdmin(req: any): Promise<{ isAdmin: boolean; userId?: string }> {
+  const cookieStore = cookies()
+  const userId = cookieStore.get("userId")?.value
+
+  if (!userId) {
+    return { isAdmin: false }
+  }
+
+  const user = users.find((user) => user.id === userId && !user.deleted)
+
+  if (!user || (user.role !== "admin" && user.role !== "creator")) {
+    return { isAdmin: false }
+  }
+
+  return { isAdmin: true, userId: user.id }
 }
