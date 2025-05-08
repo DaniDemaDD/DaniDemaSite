@@ -1,7 +1,6 @@
 // This is a simple in-memory auth system for demonstration
 // In a real app, you would use a database and proper auth system
 
-import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 import { JWT_SECRET } from "./constants"
 
@@ -550,15 +549,6 @@ export async function signUp(name: string, email: string, password: string, ipAd
     await sendVerificationEmail(email, verificationToken!)
   }
 
-  // Set auth cookie
-  const cookieStore = cookies()
-  cookieStore.set("userId", newUser.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-    path: "/",
-  })
-
   return newUser
 }
 
@@ -631,26 +621,13 @@ export async function signIn(email: string, password: string, ipAddress: string)
   user.lastLogin = getCurrentDate()
   user.ipAddress = ipAddress
 
-  // Set auth cookie
-  const cookieStore = cookies()
-  cookieStore.set("userId", user.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-    path: "/",
-  })
-
   return user
 }
 
-export async function signOut() {
-  const cookieStore = cookies()
-  cookieStore.delete("userId")
-}
+export async function signOut() {}
 
 export async function getCurrentUser(): Promise<User | null> {
-  const cookieStore = cookies()
-  const userId = cookieStore.get("userId")?.value
+  const userId = ""
   if (!userId) {
     return null
   }
@@ -1373,8 +1350,7 @@ export async function checkAndResetTickets(): Promise<number> {
 }
 
 export async function isAdmin(req: any): Promise<{ isAdmin: boolean; userId?: string }> {
-  const cookieStore = cookies()
-  const userId = cookieStore.get("userId")?.value
+  const userId = ""
 
   if (!userId) {
     return { isAdmin: false }

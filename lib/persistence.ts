@@ -4,6 +4,11 @@
  * This module provides functions to backup and restore site data.
  */
 
+// Make sure this file doesn't use next/headers
+// If it does, we need to refactor it to use alternative approaches
+
+// Remove any imports of next/headers if they exist
+
 // Import the necessary data stores
 import { users, supportRequests, socialLinks, softwareData, aiResponses, siteSettings, roles } from "./auth"
 

@@ -2,6 +2,11 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
+  // Skip processing in v0 preview environment
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === "preview" || request.headers.get("x-vercel-skip-middleware") === "true") {
+    return NextResponse.next()
+  }
+
   // Check if the site is in maintenance mode
   try {
     const response = await fetch(`${request.nextUrl.origin}/api/admin/site-settings`)
