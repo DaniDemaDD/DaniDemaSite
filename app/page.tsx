@@ -6,6 +6,8 @@ import ImageSlider from "@/components/image-slider"
 import SocialLinks from "@/components/social-links"
 
 export default function Home() {
+  // **IMPORTANT: Replace these placeholder image URLs with your actual image URLs from your site.**
+  // Example: { src: "/images/project1.jpg", alt: "Project One" }
   const sliderImages = [
     { src: "/placeholder.svg?height=720&width=1280", alt: "Futuristic City" },
     { src: "/placeholder.svg?height=720&width=1280", alt: "Cyberpunk Street" },
@@ -14,14 +16,14 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white relative overflow-hidden">
-      {/* Background animation overlay */}
+      {/* Background animation overlay - Replicating the subtle moving background */}
       <div className="absolute inset-0 z-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 opacity-70 animate-background-pan"></div>
       <div className="absolute inset-0 z-0 bg-[url('/placeholder.svg?height=100&width=100')] opacity-10"></div>
 
-      {/* Music Player */}
+      {/* Music Player - Replicating the music functionality */}
       <MusicPlayer />
 
-      {/* Hero Section */}
+      {/* Hero Section - Replicating the main title and call to action */}
       <section className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-20 text-center animate-fade-in">
         <h1
           className="text-6xl md:text-8xl font-orbitron font-bold mb-6 neon-text"
@@ -52,7 +54,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About Section */}
+      {/* About Section - Replicating the "ABOUT ME" content */}
       <section id="about" className="relative z-10 py-20 px-4 bg-black bg-opacity-80">
         <div className="container mx-auto text-center">
           <h2
@@ -76,7 +78,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Projects Section with Slider */}
+      {/* Projects Section with Slider - Replicating the image slider */}
       <section id="projects" className="relative z-10 py-20 px-4 bg-black bg-opacity-90">
         <div className="container mx-auto text-center">
           <h2
@@ -92,7 +94,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social Links Section */}
+      {/* Social Links Section - Replicating the social media icons */}
       <section id="contact" className="relative z-10 py-20 px-4 bg-black bg-opacity-80">
         <div className="container mx-auto text-center">
           <h2
@@ -108,7 +110,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer - Replicating the copyright information */}
       <footer className="relative z-10 py-8 px-4 text-center bg-black bg-opacity-95 border-t border-gray-800">
         <p className="text-gray-500 font-rajdhani text-sm">
           © {new Date().getFullYear()} DANIDEMA. All rights reserved.

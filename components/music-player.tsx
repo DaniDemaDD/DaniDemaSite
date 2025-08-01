@@ -9,10 +9,10 @@ export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
 
-  // Placeholder for your music file
-  // IMPORTANT: Replace this with your actual music file URL
-  // Example: /music/background-track.mp3
-  const musicSrc = "/placeholder.svg?height=1&width=1" // Placeholder, replace with actual MP3 URL
+  // **IMPORTANT: Replace this with the actual music file URL from your site.**
+  // Example: const musicSrc = "/music/your-background-music.mp3";
+  // For now, using a placeholder.
+  const musicSrc = "/placeholder.svg?height=1&width=1"
 
   useEffect(() => {
     if (audioRef.current) {
