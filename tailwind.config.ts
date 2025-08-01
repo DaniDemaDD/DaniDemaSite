@@ -53,15 +53,6 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom neon colors to match guns.lol/danidemacopia
-        neon: {
-          DEFAULT: "#00FFFF", // Cyan
-          blue: "#00BFFF",
-          purple: "#BF00FF",
-          pink: "#FF00BF",
-          green: "#00FF00",
-          red: "#FF0000",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -77,47 +68,10 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "neon-glow": {
-          "0%, 100%": {
-            textShadow: "0 0 5px var(--neon), 0 0 10px var(--neon), 0 0 20px var(--neon)",
-            boxShadow: "0 0 5px var(--neon), 0 0 10px var(--neon), 0 0 20px var(--neon)",
-          },
-          "50%": {
-            textShadow: "0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 30px var(--neon)",
-            boxShadow: "0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 30px var(--neon)",
-          },
-        },
-        "pulse-neon": {
-          "0%, 100%": {
-            opacity: "1",
-            transform: "scale(1)",
-          },
-          "50%": {
-            opacity: "0.7",
-            transform: "scale(1.02)",
-          },
-        },
-        "background-pan": {
-          "0%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
-          "100%": { backgroundPosition: "0% 50%" },
-        },
-        "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "neon-glow": "neon-glow 1.5s ease-in-out infinite alternate",
-        "pulse-neon": "pulse-neon 2s ease-in-out infinite",
-        "background-pan": "background-pan 10s ease infinite",
-        "fade-in": "fade-in 1s ease-out forwards",
-      },
-      fontFamily: {
-        orbitron: ["Orbitron", "sans-serif"],
-        rajdhani: ["Rajdhani", "sans-serif"],
       },
     },
   },
