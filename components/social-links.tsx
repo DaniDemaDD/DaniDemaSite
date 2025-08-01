@@ -5,7 +5,7 @@ export default function SocialLinks() {
   return (
     <div className="flex flex-wrap justify-center gap-6 mt-8">
       <Link
-        href="https://github.com/yourusername"
+        href="https://github.com/yourusername" // Replace with your GitHub
         target="_blank"
         rel="noopener noreferrer"
         className="text-neon hover:text-neon-blue transition-colors duration-300 animate-pulse-neon"
@@ -14,7 +14,7 @@ export default function SocialLinks() {
         <Github className="h-12 w-12" />
       </Link>
       <Link
-        href="https://twitter.com/yourusername"
+        href="https://twitter.com/yourusername" // Replace with your Twitter
         target="_blank"
         rel="noopener noreferrer"
         className="text-neon hover:text-neon-blue transition-colors duration-300 animate-pulse-neon"
@@ -23,7 +23,7 @@ export default function SocialLinks() {
         <Twitter className="h-12 w-12" />
       </Link>
       <Link
-        href="https://youtube.com/yourchannel"
+        href="https://youtube.com/yourchannel" // Replace with your YouTube
         target="_blank"
         rel="noopener noreferrer"
         className="text-neon hover:text-neon-blue transition-colors duration-300 animate-pulse-neon"
@@ -32,7 +32,7 @@ export default function SocialLinks() {
         <Youtube className="h-12 w-12" />
       </Link>
       <Link
-        href="https://instagram.com/yourusername"
+        href="https://instagram.com/yourusername" // Replace with your Instagram
         target="_blank"
         rel="noopener noreferrer"
         className="text-neon hover:text-neon-blue transition-colors duration-300 animate-pulse-neon"
@@ -41,7 +41,7 @@ export default function SocialLinks() {
         <Instagram className="h-12 w-12" />
       </Link>
       <Link
-        href="https://linkedin.com/in/yourusername"
+        href="https://linkedin.com/in/yourusername" // Replace with your LinkedIn
         target="_blank"
         rel="noopener noreferrer"
         className="text-neon hover:text-neon-blue transition-colors duration-300 animate-pulse-neon"

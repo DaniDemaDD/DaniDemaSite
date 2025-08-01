@@ -53,7 +53,7 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Custom neon colors
+        // Custom neon colors to match guns.lol/danidemacopia
         neon: {
           DEFAULT: "#00FFFF", // Cyan
           blue: "#00BFFF",
@@ -79,12 +79,12 @@ const config = {
         },
         "neon-glow": {
           "0%, 100%": {
-            textShadow: "0 0 5px hsl(var(--neon)), 0 0 10px hsl(var(--neon)), 0 0 20px hsl(var(--neon))",
-            boxShadow: "0 0 5px hsl(var(--neon)), 0 0 10px hsl(var(--neon)), 0 0 20px hsl(var(--neon))",
+            textShadow: "0 0 5px var(--neon), 0 0 10px var(--neon), 0 0 20px var(--neon)",
+            boxShadow: "0 0 5px var(--neon), 0 0 10px var(--neon), 0 0 20px var(--neon)",
           },
           "50%": {
-            textShadow: "0 0 10px hsl(var(--neon)), 0 0 20px hsl(var(--neon)), 0 0 30px hsl(var(--neon))",
-            boxShadow: "0 0 10px hsl(var(--neon)), 0 0 20px hsl(var(--neon)), 0 0 30px hsl(var(--neon))",
+            textShadow: "0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 30px var(--neon)",
+            boxShadow: "0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 30px var(--neon)",
           },
         },
         "pulse-neon": {
@@ -102,6 +102,10 @@ const config = {
           "50%": { backgroundPosition: "100% 50%" },
           "100%": { backgroundPosition: "0% 50%" },
         },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -109,6 +113,7 @@ const config = {
         "neon-glow": "neon-glow 1.5s ease-in-out infinite alternate",
         "pulse-neon": "pulse-neon 2s ease-in-out infinite",
         "background-pan": "background-pan 10s ease infinite",
+        "fade-in": "fade-in 1s ease-out forwards",
       },
       fontFamily: {
         orbitron: ["Orbitron", "sans-serif"],

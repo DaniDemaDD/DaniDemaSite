@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import animations */
-@import "./animations.css";
-
 /* Import Google Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;700&display=swap");
 

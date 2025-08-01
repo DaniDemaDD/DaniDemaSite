@@ -12,7 +12,7 @@ export default function MusicPlayer() {
   // Placeholder for your music file
   // IMPORTANT: Replace this with your actual music file URL
   // Example: /music/background-track.mp3
-  const musicSrc = "/placeholder.svg?height=1&width=1"
+  const musicSrc = "/placeholder.svg?height=1&width=1" // Placeholder, replace with actual MP3 URL
 
   useEffect(() => {
     if (audioRef.current) {

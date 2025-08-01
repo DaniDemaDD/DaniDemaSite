@@ -22,7 +22,7 @@ export default function Home() {
       <MusicPlayer />
 
       {/* Hero Section */}
-      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-20 text-center">
+      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-20 text-center animate-fade-in">
         <h1
           className="text-6xl md:text-8xl font-orbitron font-bold mb-6 neon-text"
           style={{ "--neon": "var(--neon-blue)" } as React.CSSProperties}
