@@ -3,34 +3,14 @@ import Script from "next/script"
 import "./globals.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
-import Navbar from "@/components/navbar"
-import { AuthProvider } from "@/components/auth/auth-context"
 import { Toaster } from "@/components/ui/toaster"
-import { FloatingSettingsButton } from "@/components/floating-settings-button"
-import { CookieConsent } from "@/components/cookie-consent"
-import { BrowserDetector } from "@/components/browser-detector"
-import { InteractiveTutorial } from "@/components/interactive-tutorial"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "DaniDema | Assistente AI, Bot Discord, Soluzioni Software su Misura",
-  description:
-    "Scopri DaniDema: assistente AI personale, bot AI per Discord e WhatsApp, soluzioni software personalizzate per aziende e sviluppatori.",
-  keywords: [
-    "social danidema",
-    "discord danidema",
-    "CMDProtector",
-    "DaniDema",
-    "THE-LAST-DS",
-    "thelastds",
-    "discord mod",
-    "AI danidema",
-  ],
-  verification: {
-    google: "lw5tZQFV25NKeJTqWDTp0F8g-lS3pph3fUNYtEMlkWI",
-  },
+  title: "Site Under Development",
+  description: "This site is currently under development.",
     generator: 'v0.dev'
 }
 
@@ -80,22 +60,15 @@ export default function RootLayout({
         />
 
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>
-            {/* Browser detector */}
-            <BrowserDetector />
-
-            <Navbar />
-            <div className="pt-16">{children}</div>
-            <FloatingSettingsButton />
-            <Toaster />
-            <CookieConsent />
-
-            {/* Interactive tutorial */}
-            <InteractiveTutorial />
-
-            {/* Vercel Speed Insights */}
-            <SpeedInsights />
-          </AuthProvider>
+          {/* Removed Navbar */}
+          <div className="pt-0">{children}</div> {/* Adjusted padding as Navbar is removed */}
+          {/* Removed FloatingSettingsButton */}
+          <Toaster />
+          {/* Removed CookieConsent */}
+          {/* Removed BrowserDetector */}
+          {/* Removed InteractiveTutorial */}
+          {/* Vercel Speed Insights */}
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
