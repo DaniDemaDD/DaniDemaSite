@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" className={`${orbitron.variable} ${rajdhani.variable}`}>
-      <body className="font-rajdhani">{children}</body>
+      <body>{children}</body>
     </html>
   )
 }

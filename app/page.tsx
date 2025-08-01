@@ -1,19 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Wrench } from "lucide-react" // Importa l'icona della chiave inglese
+import { Wrench, X } from "lucide-react" // Importa l'icona della chiave inglese e la X per chiudere
 
 export default function MaintenancePage() {
-  // Imposta isDialogOpen a true inizialmente per aprirlo automaticamente
-  const [isDialogOpen, setIsDialogOpen] = useState(true)
+  // Stato per controllare la visibilità dell'avviso nell'angolo
+  const [isNoticeVisible, setIsNoticeVisible] = useState(true)
 
   useEffect(() => {
-    // Questo useEffect assicura che il dialog si apra all'inizio.
-    // Non è strettamente necessario se useState(true) è sufficiente,
-    // ma può essere utile per logica più complessa di apertura.
-    setIsDialogOpen(true)
+    // L'avviso è visibile di default e rimane tale finché non viene chiuso
+    setIsNoticeVisible(true)
   }, [])
 
   return (
@@ -33,27 +29,26 @@ export default function MaintenancePage() {
         </p>
       </main>
 
-      {/* Maintenance Info Dialog - Now closable */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-dark-card text-dark-text border-dark-card-border rounded-lg shadow-2xl animate-border-pulse">
-          <DialogHeader className="flex flex-col items-center text-center">
-            <Wrench className="h-12 w-12 text-dark-accent mb-2" />
-            <DialogTitle className="text-2xl font-orbitron text-dark-accent">Avviso Importante</DialogTitle>
-            <DialogDescription className="text-dark-text mt-2 font-rajdhani">
-              Ci scusiamo per l'inconveniente. Il sito è attualmente in fase di manutenzione programmata. Apprezziamo la
-              tua pazienza e ti invitiamo a riprovare più tardi.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center mt-4">
-            <Button
-              onClick={() => setIsDialogOpen(false)}
-              className="bg-dark-accent text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
+      {/* Fixed Corner Notice */}
+      {isNoticeVisible && (
+        <div className="fixed bottom-4 right-4 z-50 bg-dark-card text-dark-text border-2 border-dark-card-border rounded-lg shadow-2xl p-4 max-w-xs animate-fade-in">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-orbitron text-dark-accent flex items-center gap-2">
+              <Wrench className="h-5 w-5" /> Avviso Importante
+            </h3>
+            <button
+              onClick={() => setIsNoticeVisible(false)}
+              className="text-gray-400 hover:text-white transition-colors duration-200"
+              aria-label="Chiudi avviso"
             >
-              Ho Capito
-            </Button>
+              <X className="h-5 w-5" />
+            </button>
           </div>
-        </DialogContent>
-      </Dialog>
+          <p className="text-sm font-rajdhani text-gray-300">
+            Il sito è in manutenzione programmata. Apprezziamo la tua pazienza.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
