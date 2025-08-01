@@ -77,7 +77,7 @@
 
 /* Force dark mode for all sections */
 .dark section {
-  @apply bg-background text-foreground;
+  @apply bg-background;
 }
 
 .dark .bg-white {
@@ -171,7 +171,7 @@ select {
   overflow-y: auto;
 }
 
-/* Improved toast toast */
+/* Improved toast styles */
 .toast {
   max-width: 90vw;
 }
