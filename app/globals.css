@@ -28,8 +28,8 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 214.3 31.6% 91.4%;
+    --input: 214.3 31.6% 91.4%;
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
@@ -52,7 +52,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215.4 16.3% 56.9%;
 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
@@ -75,103 +75,9 @@
   }
 }
 
-/* Force dark mode for all sections */
-.dark section {
-  @apply bg-background;
-}
-
-.dark .bg-white {
-  @apply bg-background;
-}
-
-.dark .bg-gray-50 {
-  @apply bg-secondary;
-}
-
-.dark .bg-gray-100 {
-  @apply bg-secondary;
-}
-
-.dark .text-gray-700 {
-  @apply text-foreground;
-}
-
-.dark .text-gray-800 {
-  @apply text-foreground;
-}
-
-.dark .border-gray-200 {
-  @apply border-border;
-}
-
-.dark .border-gray-300 {
-  @apply border-border;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Focus styles */
-:focus {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-
-/* Improved button styles */
-button,
-.button,
-[role="button"] {
-  cursor: pointer;
-  user-select: none;
-}
-
-/* Improved table styles */
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-/* Improved form element styles */
-input,
-textarea,
-select {
-  font-size: 16px; /* Prevents zoom on mobile */
-}
-
-/* Improved card styles */
-.card {
-  overflow: hidden;
-}
-
-/* Improved dialog styles */
-.dialog {
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-/* Improved toast styles */
-.toast {
-  max-width: 90vw;
+/* Custom background grid pattern */
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
