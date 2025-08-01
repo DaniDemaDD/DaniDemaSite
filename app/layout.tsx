@@ -18,15 +18,15 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "DANIDEMA 💎⭐",
-  description: "BADBOY! - Developer • Creator • Tech Enthusiast",
-  keywords: ["DaniDema", "developer", "creator", "tech", "programming", "badboy"],
+  title: "DANIDEMA",
+  description: "Developer • Creator • :)",
+  keywords: ["DaniDema", "developer", "creator", "tech", "programming"],
   authors: [{ name: "DaniDema" }],
   viewport: "width=device-width, initial-scale=1",
   themeColor: "#000000",
   openGraph: {
-    title: "DANIDEMA 💎⭐",
-    description: "BADBOY! - Developer • Creator • Tech Enthusiast",
+    title: "DANIDEMA",
+    description: "Developer • Creator • :)",
     type: "website",
     locale: "en_US",
   },
