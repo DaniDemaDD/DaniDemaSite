@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Volume2, VolumeX, MapPin, SkipForward, BadgeCheck } from "lucide-react"
+import { Volume2, VolumeX, MapPin, SkipForward, BadgeCheck, ShoppingBag } from "lucide-react" // Importato ShoppingBag
 
 export default function HomePage() {
   const [isMuted, setIsMuted] = useState(true) // Start muted, user clicks to reveal and play
@@ -115,6 +115,11 @@ export default function HomePage() {
       url: "https://www.roblox.com/users/2506957261/profile",
       icon: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/roblox.svg",
     },
+    {
+      name: "Shop Link",
+      url: "https://www.roblox.com/catalog/125977396777204/cat",
+      icon: "shopping-bag", // Aggiornato per usare l'identificatore dell'icona
+    },
   ]
 
   return (
@@ -196,7 +201,7 @@ export default function HomePage() {
           <div className="mb-6 animate-fade-in">
             <div className="relative inline-block">
               <img
-                src="/profile.jpg" // Aggiornato per usare la nuova immagine
+                src="/profile.jpg"
                 alt="DaniDema Profile"
                 className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-white/20 shadow-2xl mx-auto"
               />
@@ -250,7 +255,9 @@ export default function HomePage() {
                 className="group relative p-2 rounded-lg hover:bg-white/10 transition-all duration-300 hover:scale-110"
                 title={tool.name}
               >
-                {tool.icon.startsWith("http") ? (
+                {tool.icon === "shopping-bag" ? ( // Nuova condizione per l'icona ShoppingBag
+                  <ShoppingBag className="w-8 h-8 text-white transition-all duration-300 group-hover:text-gray-300" />
+                ) : tool.icon.startsWith("http") ? (
                   <img
                     src={tool.icon || "/placeholder.svg"}
                     alt={`${tool.name} icon`}
