@@ -20,11 +20,6 @@ const config: Config = {
     },
     extend: {
       colors: {
-        "dark-bg": "#0A0A0A", // Quasi nero
-        "dark-text": "#E0E0E0", // Grigio chiaro per il testo
-        "dark-accent": "#8A2BE2", // Viola brillante
-        "dark-card": "#1A1A1A", // Grigio scuro per le card
-        "dark-card-border": "#333333", // Bordo più scuro per le card
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -73,37 +68,14 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "pulse-glow": {
-          "0%, 100%": {
-            opacity: "1",
-            textShadow: "0 0 5px rgba(138, 43, 226, 0.5)",
-            boxShadow: "0 0 5px rgba(138, 43, 226, 0.5)",
-          },
-          "50%": {
-            opacity: "0.8",
-            textShadow: "0 0 15px rgba(138, 43, 226, 0.8)",
-            boxShadow: "0 0 15px rgba(138, 43, 226, 0.8)",
-          },
-        },
-        "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(20px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "border-pulse": {
-          "0%, 100%": { borderColor: "rgba(138, 43, 226, 0.5)" },
-          "50%": { borderColor: "rgba(138, 43, 226, 1)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "pulse-glow": "pulse-glow 2s infinite ease-in-out",
-        "fade-in": "fade-in 1s ease-out forwards",
-        "border-pulse": "border-pulse 2s infinite ease-in-out",
       },
       fontFamily: {
-        orbitron: ["var(--font-orbitron)"],
-        rajdhani: ["var(--font-rajdhani)"],
+        sans: ["var(--font-sans)"],
+        mono: ["var(--font-mono)"],
       },
     },
   },

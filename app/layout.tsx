@@ -1,38 +1,46 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Orbitron, Rajdhani } from "next/font/google" // Import fonts from next/font/google
+import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 
-// Configure Orbitron font
-const orbitron = Orbitron({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["700"], // Only import the weight used
-  variable: "--font-orbitron", // Define CSS variable for Orbitron
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
   display: "swap",
 })
 
-// Configure Rajdhani font
-const rajdhani = Rajdhani({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "600"], // Only import the weights used
-  variable: "--font-rajdhani", // Define CSS variable for Rajdhani
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-mono",
   display: "swap",
 })
 
 export const metadata: Metadata = {
-  title: "Sito in Manutenzione",
-  description: "Il sito è attualmente in fase di manutenzione.",
+  title: "DANIDEMA 💎⭐",
+  description: "BADBOY! - Developer • Creator • Tech Enthusiast",
+  keywords: ["DaniDema", "developer", "creator", "tech", "programming", "badboy"],
+  authors: [{ name: "DaniDema" }],
+  viewport: "width=device-width, initial-scale=1",
+  themeColor: "#000000",
+  openGraph: {
+    title: "DANIDEMA 💎⭐",
+    description: "BADBOY! - Developer • Creator • Tech Enthusiast",
+    type: "website",
+    locale: "en_US",
+  },
     generator: 'v0.dev'
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="it" className={`${orbitron.variable} ${rajdhani.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className="antialiased">{children}</body>
     </html>
   )
 }
