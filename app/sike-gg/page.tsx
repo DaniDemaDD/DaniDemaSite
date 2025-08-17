@@ -92,7 +92,7 @@ export default function SikeGGPage() {
                     <strong>Utente:</strong> chiunque utilizzi il bot (sia amministratori che membri).
                   </li>
                   <li>
-                    <strong>Proprietario:</strong> Daniele de Martini (dani.dema), sviluppatore e gestore del bot.
+                    <strong>Proprietario:</strong> dani.dema, sviluppatore e gestore del bot.
                   </li>
                   <li>
                     <strong>Server:</strong> comunità Discord in cui il bot viene aggiunto.
