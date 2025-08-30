@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react"
+import { AuthSession } from "@/lib/auth"
 
 declare global {
   interface Window {
@@ -99,10 +100,14 @@ export default function LoginPage() {
 
       console.log("reCAPTCHA v2 verified successfully")
 
+      // Set login status
+      AuthSession.setLoginStatus(true)
+      AuthSession.set2FAStatus(false) // Reset 2FA status
+
       // Simulate login process
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Redirect to the very long URL dashboard
+      // Redirect to the very long URL dashboard (which will now check for 2FA)
       window.location.href =
         "/admin-dashboard-management-panel-secure-access-control-system-authenticated-users-only-restricted-area-authorized-personnel-verification-required"
     } catch (err) {
