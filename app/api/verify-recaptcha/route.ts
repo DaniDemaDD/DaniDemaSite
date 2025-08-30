@@ -2,7 +2,18 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, version } = await request.json()
+    const body = await request.json()
+    const { token, version } = body
+
+    if (!token) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No token provided",
+        },
+        { status: 400 },
+      )
+    }
 
     if (version === "v2") {
       // Verify reCAPTCHA v2 token
@@ -12,7 +23,7 @@ export async function POST(request: NextRequest) {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
-          secret: "6LeQmrgrAAAAAN_YcQEFyXmQ2DkA29sJWoM1ELgh", // Secret key v2
+          secret: "6LeQmrgrAAAAAN_YcQEFyXmQ2DkA29sJWoM1ELgh",
           response: token,
         }),
       })
@@ -38,7 +49,6 @@ export async function POST(request: NextRequest) {
         )
       }
     } else {
-      // Fallback per v3 se necessario
       return NextResponse.json(
         {
           success: false,

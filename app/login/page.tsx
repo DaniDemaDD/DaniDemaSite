@@ -7,8 +7,12 @@ import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react"
 
 declare global {
   interface Window {
-    grecaptcha: any
-    onRecaptchaLoad: () => void
+    grecaptcha?: {
+      render: (container: HTMLElement, options: any) => void
+      getResponse: () => string
+      reset: () => void
+    }
+    onRecaptchaLoad?: () => void
   }
 }
 
@@ -28,14 +32,20 @@ export default function LoginPage() {
     script.async = true
     script.defer = true
 
-    window.onRecaptchaLoad = () => {
-      if (recaptchaRef.current && window.grecaptcha) {
-        window.grecaptcha.render(recaptchaRef.current, {
-          sitekey: "6LeQmrgrAAAAANoWOYeesTD6ncuaXJqVvdXLBe2-", // Chiave v2
-          theme: "dark",
-        })
-        setRecaptchaLoaded(true)
-        console.log("reCAPTCHA v2 loaded successfully")
+    if (typeof window !== "undefined") {
+      window.onRecaptchaLoad = () => {
+        if (recaptchaRef.current && window.grecaptcha) {
+          try {
+            window.grecaptcha.render(recaptchaRef.current, {
+              sitekey: "6LeQmrgrAAAAANoWOYeesTD6ncuaXJqVvdXLBe2-",
+              theme: "dark",
+            })
+            setRecaptchaLoaded(true)
+            console.log("reCAPTCHA v2 loaded successfully")
+          } catch (error) {
+            console.error("reCAPTCHA render error:", error)
+          }
+        }
       }
     }
 
@@ -55,7 +65,7 @@ export default function LoginPage() {
 
     try {
       // Verify reCAPTCHA v2
-      if (!window.grecaptcha || !recaptchaLoaded) {
+      if (typeof window === "undefined" || !window.grecaptcha || !recaptchaLoaded) {
         throw new Error("reCAPTCHA not loaded")
       }
 
@@ -98,8 +108,12 @@ export default function LoginPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
       // Reset reCAPTCHA on error
-      if (window.grecaptcha) {
-        window.grecaptcha.reset()
+      if (typeof window !== "undefined" && window.grecaptcha) {
+        try {
+          window.grecaptcha.reset()
+        } catch (resetError) {
+          console.error("reCAPTCHA reset error:", resetError)
+        }
       }
     } finally {
       setIsLoading(false)
