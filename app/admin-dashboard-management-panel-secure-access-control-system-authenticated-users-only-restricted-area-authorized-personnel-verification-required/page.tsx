@@ -8,13 +8,12 @@ import {
   BarChart3,
   Bot,
   Globe,
-  Terminal,
   Square,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
+  Play,
+  RotateCcw,
   Save,
+  Trash2,
+  Plus,
 } from "lucide-react"
 import { AuthSession } from "@/lib/auth"
 
@@ -26,7 +25,6 @@ export default function AdminDashboardPage() {
   const [activeSection, setActiveSection] = useState<DashboardSection>("overview")
 
   useEffect(() => {
-    // Check authentication status
     const checkAuth = () => {
       const isLoggedIn = AuthSession.getLoginStatus()
       const is2FAVerified = AuthSession.get2FAStatus()
@@ -135,36 +133,442 @@ export default function AdminDashboardPage() {
   )
 }
 
-// Overview Section Component
+// Bot Manager Section - Completamente funzionale
+function BotManagerSection() {
+  const [botStatus, setBotStatus] = useState("stopped")
+  const [logs, setLogs] = useState<string[]>([])
+  const [commandHistory, setCommandHistory] = useState<string[]>([])
+  const [currentCommand, setCurrentCommand] = useState("")
+  const [envVars, setEnvVars] = useState({
+    DISCORD_TOKEN: "",
+    PREFIX: "!",
+    OWNER_ID: "",
+  })
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    // Load initial logs
+    loadLogs()
+    loadCommandHistory()
+
+    // Auto-refresh logs every 5 seconds
+    const interval = setInterval(() => {
+      if (botStatus === "running") {
+        loadLogs()
+      }
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [botStatus])
+
+  const loadLogs = async () => {
+    try {
+      const res = await fetch("/api/bot/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logs" }),
+      })
+      const data = await res.json()
+      if (data.logs) {
+        setLogs(data.logs)
+      }
+    } catch (error) {
+      console.error("Failed to load logs:", error)
+    }
+  }
+
+  const loadCommandHistory = async () => {
+    try {
+      const res = await fetch("/api/bot/command")
+      const data = await res.json()
+      if (data.history) {
+        setCommandHistory(data.history)
+      }
+    } catch (error) {
+      console.error("Failed to load command history:", error)
+    }
+  }
+
+  const handleDeploy = async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch("/api/bot/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "deploy", envVars }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setBotStatus("running")
+        await loadLogs()
+      }
+    } catch (error) {
+      console.error("Deploy failed:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleStop = async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch("/api/bot/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "stop" }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setBotStatus("stopped")
+      }
+    } catch (error) {
+      console.error("Stop failed:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleRestart = async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch("/api/bot/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "restart", envVars }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setBotStatus("running")
+        await loadLogs()
+      }
+    } catch (error) {
+      console.error("Restart failed:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const executeCommand = async () => {
+    if (!currentCommand.trim()) return
+
+    try {
+      const res = await fetch("/api/bot/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: currentCommand }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setCommandHistory(data.history)
+        setCurrentCommand("")
+      }
+    } catch (error) {
+      console.error("Command failed:", error)
+    }
+  }
+
+  return (
+    <div>
+      <h2 className="text-3xl font-bold mb-8">Discord Bot Manager</h2>
+
+      {/* Bot Status Card */}
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h3 className="text-2xl font-bold">DaniDema Bot Manager</h3>
+            <p className="text-white/60">Python Discord Bot from GitHub</p>
+            <p className="text-sm text-white/40 mt-1">Repository: DaniDemaDD/BotManager</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${botStatus === "running" ? "bg-green-400" : "bg-red-400"}`}></div>
+            <span className={`text-sm ${botStatus === "running" ? "text-green-400" : "text-red-400"}`}>
+              {botStatus.charAt(0).toUpperCase() + botStatus.slice(1)}
+            </span>
+          </div>
+        </div>
+
+        {/* Environment Variables */}
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">Discord Token</label>
+            <input
+              type="password"
+              value={envVars.DISCORD_TOKEN}
+              onChange={(e) => setEnvVars({ ...envVars, DISCORD_TOKEN: e.target.value })}
+              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Bot token..."
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Command Prefix</label>
+            <input
+              type="text"
+              value={envVars.PREFIX}
+              onChange={(e) => setEnvVars({ ...envVars, PREFIX: e.target.value })}
+              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Owner ID</label>
+            <input
+              type="text"
+              value={envVars.OWNER_ID}
+              onChange={(e) => setEnvVars({ ...envVars, OWNER_ID: e.target.value })}
+              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Your Discord ID"
+            />
+          </div>
+        </div>
+
+        {/* Control Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleDeploy}
+            disabled={isLoading || botStatus === "running"}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-lg transition-colors disabled:cursor-not-allowed"
+          >
+            <Play className="w-4 h-4" />
+            {isLoading ? "Deploying..." : "Deploy & Start"}
+          </button>
+          <button
+            onClick={handleStop}
+            disabled={isLoading || botStatus === "stopped"}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 rounded-lg transition-colors disabled:cursor-not-allowed"
+          >
+            <Square className="w-4 h-4" />
+            Stop
+          </button>
+          <button
+            onClick={handleRestart}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg transition-colors disabled:cursor-not-allowed"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Restart
+          </button>
+        </div>
+      </div>
+
+      {/* Console */}
+      <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold">Bot Console</h3>
+          <button
+            onClick={() => {
+              setLogs([])
+              setCommandHistory([])
+            }}
+            className="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded text-red-300 hover:bg-red-600/30 transition-colors text-sm"
+          >
+            Clear
+          </button>
+        </div>
+
+        {/* Logs Display */}
+        <div className="bg-black/60 rounded-lg p-4 font-mono text-sm h-64 overflow-y-auto mb-4">
+          {logs.length === 0 && commandHistory.length === 0 ? (
+            <div className="text-white/40">Console output will appear here...</div>
+          ) : (
+            <>
+              {logs.map((log, index) => (
+                <div key={`log-${index}`} className="text-green-400 mb-1">
+                  {log}
+                </div>
+              ))}
+              {commandHistory.map((cmd, index) => (
+                <div key={`cmd-${index}`} className="text-blue-400 mb-1">
+                  {cmd}
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+
+        {/* Command Input */}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={currentCommand}
+            onChange={(e) => setCurrentCommand(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && executeCommand()}
+            placeholder="Enter command (help, status, ping, restart, logs)..."
+            className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+          />
+          <button
+            onClick={executeCommand}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+          >
+            Execute
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Site Editor Section - Con regole vere modificabili
+function SiteEditorSection() {
+  const [rules, setRules] = useState<string[]>([])
+  const [newRule, setNewRule] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    loadRules()
+  }, [])
+
+  const loadRules = async () => {
+    try {
+      const res = await fetch("/api/site-rules")
+      const data = await res.json()
+      setRules(data.rules || [])
+    } catch (error) {
+      console.error("Failed to load rules:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const saveRules = async () => {
+    setIsSaving(true)
+    try {
+      const res = await fetch("/api/site-rules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rules }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert("Regole salvate con successo!")
+      }
+    } catch (error) {
+      console.error("Failed to save rules:", error)
+      alert("Errore nel salvare le regole")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const addRule = () => {
+    if (newRule.trim()) {
+      setRules([...rules, newRule.trim()])
+      setNewRule("")
+    }
+  }
+
+  const removeRule = (index: number) => {
+    setRules(rules.filter((_, i) => i !== index))
+  }
+
+  const updateRule = (index: number, newText: string) => {
+    const updatedRules = [...rules]
+    updatedRules[index] = newText
+    setRules(updatedRules)
+  }
+
+  if (isLoading) {
+    return <div className="text-center">Caricamento regole...</div>
+  }
+
+  return (
+    <div>
+      <h2 className="text-3xl font-bold mb-8">Site Editor - sike.gg</h2>
+
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold">Regole del Server Discord</h3>
+          <button
+            onClick={saveRules}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-lg transition-colors disabled:cursor-not-allowed"
+          >
+            <Save className="w-4 h-4" />
+            {isSaving ? "Salvando..." : "Salva Regole"}
+          </button>
+        </div>
+
+        {/* Add New Rule */}
+        <div className="flex gap-2 mb-6">
+          <input
+            type="text"
+            value={newRule}
+            onChange={(e) => setNewRule(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && addRule()}
+            placeholder="Aggiungi nuova regola..."
+            className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={addRule}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Aggiungi
+          </button>
+        </div>
+
+        {/* Rules List */}
+        <div className="space-y-3">
+          {rules.map((rule, index) => (
+            <div key={index} className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={rule}
+                onChange={(e) => updateRule(index, e.target.value)}
+                className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={() => removeRule(index)}
+                className="p-2 bg-red-600/20 border border-red-500/30 rounded text-red-300 hover:bg-red-600/30 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {rules.length === 0 && (
+          <div className="text-center text-white/60 py-8">Nessuna regola configurata. Aggiungi la prima regola!</div>
+        )}
+      </div>
+
+      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10">
+        <h3 className="text-xl font-bold mb-4">Anteprima Regole</h3>
+        <div className="bg-black/40 rounded-lg p-6">
+          <h4 className="text-lg font-bold text-purple-400 mb-4">📋 Regole del Server</h4>
+          <div className="space-y-2">
+            {rules.map((rule, index) => (
+              <div key={index} className="text-white/80">
+                {rule}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Overview Section
 function OverviewSection() {
   const [stats, setStats] = useState({
     today: 0,
     month: 0,
     year: 0,
-    activeBots: 0,
-    totalBots: 0,
+    botStatus: "stopped",
   })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const loadStats = async () => {
       try {
-        // Load analytics
         const analyticsRes = await fetch("/api/analytics/stats")
         const analyticsData = await analyticsRes.json()
-
-        // Load bots
-        const botsRes = await fetch("/api/bots")
-        const botsData = await botsRes.json()
-
-        const activeBots = botsData.filter((bot: any) => bot.status === "running").length
 
         setStats({
           today: analyticsData.today || 0,
           month: analyticsData.month || 0,
           year: analyticsData.year || 0,
-          activeBots,
-          totalBots: botsData.length || 0,
+          botStatus: "running", // This would come from bot status API
         })
       } catch (error) {
         console.error("Failed to load stats:", error)
@@ -197,12 +601,10 @@ function OverviewSection() {
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div className="flex items-center gap-3 mb-4">
             <Bot className="w-8 h-8 text-blue-400" />
-            <h3 className="text-lg font-semibold">Active Bots</h3>
+            <h3 className="text-lg font-semibold">Bot Status</h3>
           </div>
-          <p className="text-3xl font-bold text-blue-400">
-            {stats.activeBots}/{stats.totalBots}
-          </p>
-          <p className="text-sm text-white/60">{10 - stats.totalBots} slots available</p>
+          <p className="text-3xl font-bold text-blue-400">{stats.botStatus === "running" ? "Online" : "Offline"}</p>
+          <p className="text-sm text-white/60">Discord Bot Manager</p>
         </div>
 
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
@@ -217,35 +619,17 @@ function OverviewSection() {
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="w-8 h-8 text-orange-400" />
-            <h3 className="text-lg font-semibold">Yearly Visits</h3>
+            <h3 className="text-lg font-semibold">Security</h3>
           </div>
-          <p className="text-3xl font-bold text-orange-400">{stats.year.toLocaleString()}</p>
-          <p className="text-sm text-white/60">This year</p>
-        </div>
-      </div>
-
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10">
-        <h3 className="text-2xl font-bold mb-4">Quick Actions</h3>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <button className="flex items-center gap-3 p-4 bg-blue-600/20 border border-blue-500/30 rounded-lg hover:bg-blue-600/30 transition-all duration-200">
-            <Plus className="w-5 h-5" />
-            Create New Bot
-          </button>
-          <button className="flex items-center gap-3 p-4 bg-purple-600/20 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition-all duration-200">
-            <Edit className="w-5 h-5" />
-            Edit Site
-          </button>
-          <button className="flex items-center gap-3 p-4 bg-green-600/20 border border-green-500/30 rounded-lg hover:bg-green-600/30 transition-all duration-200">
-            <Eye className="w-5 h-5" />
-            View Analytics
-          </button>
+          <p className="text-3xl font-bold text-green-400">Secure</p>
+          <p className="text-sm text-white/60">2FA Active</p>
         </div>
       </div>
     </div>
   )
 }
 
-// Analytics Section Component
+// Analytics Section
 function AnalyticsSection() {
   const [stats, setStats] = useState({
     today: 0,
@@ -323,204 +707,7 @@ function AnalyticsSection() {
   )
 }
 
-// Site Editor Section Component
-function SiteEditorSection() {
-  return (
-    <div>
-      <h2 className="text-3xl font-bold mb-8">Site Editor - sike.gg</h2>
-
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-          <h3 className="text-xl font-bold mb-6">Content Settings</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Site Title</label>
-              <input
-                type="text"
-                defaultValue="sike.gg"
-                className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
-              <input
-                type="text"
-                defaultValue="Discord Moderation Bot"
-                className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Discord Invite URL</label>
-              <input
-                type="url"
-                defaultValue="https://discord.com/oauth2/authorize?client_id=1403453249280802911"
-                className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-          <h3 className="text-xl font-bold mb-6">Style Settings</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Primary Color</label>
-              <input
-                type="color"
-                defaultValue="#8b5cf6"
-                className="w-full h-10 bg-white/5 border border-white/20 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Secondary Color</label>
-              <input
-                type="color"
-                defaultValue="#ec4899"
-                className="w-full h-10 bg-white/5 border border-white/20 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Font Size (px)</label>
-              <input
-                type="number"
-                defaultValue="16"
-                min="12"
-                max="24"
-                className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-8 bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10">
-        <h3 className="text-xl font-bold mb-6">Terms of Service Editor</h3>
-        <textarea
-          rows={10}
-          defaultValue="Terms of Service content here..."
-          className="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-        />
-        <div className="mt-4 flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors">
-            <Save className="w-4 h-4" />
-            Save Changes
-          </button>
-          <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-            <Eye className="w-4 h-4" />
-            Preview Site
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Bot Manager Section Component
-function BotManagerSection() {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-bold">Discord Bot Manager</h2>
-        <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-          <Plus className="w-4 h-4" />
-          Create New Bot (3/10)
-        </button>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
-        {/* Bot Card Example */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-xl font-bold">sike.gg Bot</h3>
-              <p className="text-white/60">Moderation bot for Discord</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-              <span className="text-sm text-green-400">Running</span>
-            </div>
-          </div>
-
-          <div className="space-y-2 mb-4">
-            <div className="flex justify-between text-sm">
-              <span className="text-white/60">Language:</span>
-              <span>JavaScript</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-white/60">Uptime:</span>
-              <span>2d 14h 32m</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-white/60">Memory:</span>
-              <span>45.2 MB</span>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-3 py-1 bg-red-600/20 border border-red-500/30 rounded text-red-300 hover:bg-red-600/30 transition-colors text-sm">
-              <Square className="w-3 h-3" />
-              Stop
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded text-blue-300 hover:bg-blue-600/30 transition-colors text-sm">
-              <Terminal className="w-3 h-3" />
-              Console
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1 bg-purple-600/20 border border-purple-500/30 rounded text-purple-300 hover:bg-purple-600/30 transition-colors text-sm">
-              <Edit className="w-3 h-3" />
-              Edit
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1 bg-red-600/20 border border-red-500/30 rounded text-red-300 hover:bg-red-600/30 transition-colors text-sm">
-              <Trash2 className="w-3 h-3" />
-              Delete
-            </button>
-          </div>
-        </div>
-
-        {/* Empty Slot */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 border-dashed">
-          <div className="text-center">
-            <Bot className="w-12 h-12 text-white/30 mx-auto mb-4" />
-            <p className="text-white/60 mb-4">Empty Bot Slot</p>
-            <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors mx-auto">
-              <Plus className="w-4 h-4" />
-              Create Bot
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Console Section */}
-      <div className="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">Bot Console - sike.gg Bot</h3>
-          <button className="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded text-red-300 hover:bg-red-600/30 transition-colors text-sm">
-            Clear Logs
-          </button>
-        </div>
-
-        <div className="bg-black/60 rounded-lg p-4 font-mono text-sm h-64 overflow-y-auto">
-          <div className="text-green-400">[2024-01-15 10:30:15] Bot started successfully</div>
-          <div className="text-blue-400">[2024-01-15 10:30:16] Connected to Discord API</div>
-          <div className="text-white">[2024-01-15 10:30:17] Loaded 15 commands</div>
-          <div className="text-yellow-400">[2024-01-15 10:35:22] Warning: Rate limit approaching</div>
-          <div className="text-white">[2024-01-15 10:40:33] Command executed: /ban user123</div>
-          <div className="text-green-400">[2024-01-15 10:45:11] Heartbeat acknowledged</div>
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          <input
-            type="text"
-            placeholder="Enter command..."
-            className="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-          />
-          <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">Execute</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Settings Section Component
+// Settings Section
 function SettingsSection() {
   return (
     <div>
@@ -561,12 +748,12 @@ function SettingsSection() {
               <p className="font-medium text-green-400">Online</p>
             </div>
             <div>
-              <p className="text-sm text-white/60">Last Backup</p>
-              <p className="font-medium">2 hours ago</p>
-            </div>
-            <div>
               <p className="text-sm text-white/60">Database Status</p>
               <p className="font-medium text-green-400">Connected</p>
+            </div>
+            <div>
+              <p className="text-sm text-white/60">Bot Repository</p>
+              <p className="font-medium">DaniDemaDD/BotManager</p>
             </div>
             <div>
               <p className="text-sm text-white/60">Active Sessions</p>
