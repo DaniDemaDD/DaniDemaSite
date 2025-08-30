@@ -1,24 +1,22 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Volume2, VolumeX, MapPin, SkipForward, BadgeCheck, ShoppingBag } from "lucide-react" // Importato ShoppingBag
+import { Volume2, VolumeX, MapPin, SkipForward, BadgeCheck, ShoppingBag } from "lucide-react"
+import { SecurityCheck } from "@/components/security-check"
 
 export default function HomePage() {
-  const [isMuted, setIsMuted] = useState(true) // Start muted, user clicks to reveal and play
+  const [isMuted, setIsMuted] = useState(true)
   const [currentTrack, setCurrentTrack] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [isContentRevealed, setIsContentRevealed] = useState(false) // New state for reveal overlay
+  const [isContentRevealed, setIsContentRevealed] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
 
-  const tracks = [
-    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SpotiDownloader.com%20-%20Sonne%20-%20Best%20Part%20-%20Six%20Dior-RcTYqTR9QLd2dnIvVCndrEo6qDuiPp.mp3", // First track (Sonne - Best Part - Six Dior)
-    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SpotiDownloader.com%20-%20Sonne%20-%20Best%20Part%20-%20Six%20Dior-RcTYqTR9QLd2dnIvVCndrEo6qDuiPp.mp3", // You can add a second track here when you provide it
-  ]
+  const tracks = ["https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SpotiDownloader.com%20-%20Sonne%20-%20Best%20Part%20-%20Six%20Dior-RcTYqTR9QLd2dnIvVCndrEo6qDuiPp.mp3", "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SpotiDownloader.com%20-%20Sonne%20-%20Best%20Part%20-%20Six%20Dior-RcTYqTR9QLd2dnIvVCndrEo6qDuiPp.mp3"]
 
   useEffect(() => {
     setIsLoaded(true)
     if (audioRef.current) {
-      audioRef.current.volume = 0.2 // Even lower volume
+      audioRef.current.volume = 0.2
     }
   }, [])
 
@@ -26,7 +24,7 @@ export default function HomePage() {
     setIsContentRevealed(true)
     if (audioRef.current) {
       audioRef.current.play().catch(console.error)
-      setIsMuted(false) // Unmute when content is revealed
+      setIsMuted(false)
     }
   }
 
@@ -34,7 +32,7 @@ export default function HomePage() {
     if (audioRef.current) {
       if (isMuted) {
         audioRef.current.play().catch(console.error)
-        setIsMuted(true) // Keep muted if user clicks to pause
+        setIsMuted(false)
       } else {
         audioRef.current.pause()
         setIsMuted(true)
@@ -118,13 +116,16 @@ export default function HomePage() {
     {
       name: "Shop Link",
       url: "https://www.roblox.com/catalog/125977396777204/cat",
-      icon: "shopping-bag", // Aggiornato per usare l'identificatore dell'icona
+      icon: "shopping-bag",
     },
   ]
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden flex items-center justify-center">
-      {/* Background with floating petals */}
+      {/* Security Check Component */}
+      <SecurityCheck />
+
+      {/* Background */}
       <div
         className={`absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ${
           isContentRevealed ? "filter-none" : "filter blur-lg"
@@ -190,7 +191,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Main Content - Wrapped in blurred box */}
+      {/* Main Content */}
       {isContentRevealed && (
         <div
           className={`relative z-10 text-center bg-black/30 backdrop-blur-md rounded-xl p-8 border border-white/10 transition-all duration-1000 ${
@@ -255,7 +256,7 @@ export default function HomePage() {
                 className="group relative p-2 rounded-lg hover:bg-white/10 transition-all duration-300 hover:scale-110"
                 title={tool.name}
               >
-                {tool.icon === "shopping-bag" ? ( // Nuova condizione per l'icona ShoppingBag
+                {tool.icon === "shopping-bag" ? (
                   <ShoppingBag className="w-8 h-8 text-white transition-all duration-300 group-hover:text-gray-300" />
                 ) : tool.icon.startsWith("http") ? (
                   <img
@@ -270,11 +271,6 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      )}
-
-      {/* Global Action Buttons - Rimosso il pulsante LOGIN */}
-      {isContentRevealed && (
-        <div className="fixed top-6 right-6 z-50 flex gap-4 animate-fade-in">{/* Nessun pulsante di login qui */}</div>
       )}
     </div>
   )

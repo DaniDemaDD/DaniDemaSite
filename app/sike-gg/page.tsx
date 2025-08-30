@@ -2,10 +2,14 @@
 
 import Link from "next/link"
 import { Bot, Plus, Shield, Users, Zap } from "lucide-react"
+import { SecurityCheck } from "@/components/security-check"
 
 export default function SikeGGPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
+      {/* Security Check Component */}
+      <SecurityCheck />
+
       {/* Header */}
       <header className="container mx-auto px-6 py-8">
         <nav className="flex justify-between items-center">
