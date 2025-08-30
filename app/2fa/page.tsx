@@ -31,7 +31,7 @@ export default function TwoFactorPage() {
 
       // Verify TOTP code with the secret key
       const secret = "BJWU6SPAJK2XV2LJ7TTCS7QJSYGK3EKR"
-      const isValid = verifyTOTP(code, secret)
+      const isValid = await verifyTOTP(code, secret)
 
       if (!isValid) {
         throw new Error("Invalid 2FA code. Please try again.")
@@ -140,15 +140,9 @@ export default function TwoFactorPage() {
               )}
             </button>
 
-            {/* Secret Key Info */}
-            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
-              <div className="text-xs text-yellow-200">
-                <div className="font-semibold mb-2">📦 Setup Info:</div>
-                <div className="font-mono text-xs break-all">Secret: BJWU6SPAJK2XV2LJ7TTCS7QJSYGK3EKR</div>
-                <div className="mt-2 text-yellow-300">
-                  Use this secret in your authenticator app (Google Authenticator, Authy, etc.)
-                </div>
-              </div>
+            {/* Help Text */}
+            <div className="text-center">
+              <p className="text-xs text-blue-400">Use your authenticator app to generate the verification code</p>
             </div>
           </form>
 

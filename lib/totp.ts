@@ -1,14 +1,13 @@
-// Simple TOTP implementation for 2FA
-export function generateTOTP(secret: string, timeStep = 30): string {
+// Corrected TOTP implementation using proper RFC 6238 algorithm
+export async function generateTOTP(secret: string, timeStep = 30): Promise<string> {
   const time = Math.floor(Date.now() / 1000 / timeStep)
-
-  // Convert base32 secret to bytes (simplified)
   const key = base32ToBytes(secret)
+  const timeBytes = new ArrayBuffer(8)
+  const timeView = new DataView(timeBytes)
+  timeView.setUint32(4, time, false) // Big-endian
 
-  // Generate HMAC-SHA1
-  const hmac = generateHMAC(key, numberToBytes(time))
+  const hmac = await generateHMAC(key, new Uint8Array(timeBytes))
 
-  // Extract dynamic binary code
   const offset = hmac[hmac.length - 1] & 0xf
   const code =
     ((hmac[offset] & 0x7f) << 24) |
@@ -16,13 +15,15 @@ export function generateTOTP(secret: string, timeStep = 30): string {
     ((hmac[offset + 2] & 0xff) << 8) |
     (hmac[offset + 3] & 0xff)
 
-  // Return 6-digit code
   return (code % 1000000).toString().padStart(6, "0")
 }
 
 function base32ToBytes(base32: string): Uint8Array {
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
   let bits = ""
+
+  // Remove padding and convert to uppercase
+  base32 = base32.replace(/=/g, "").toUpperCase()
 
   for (const char of base32) {
     const index = alphabet.indexOf(char)
@@ -38,15 +39,6 @@ function base32ToBytes(base32: string): Uint8Array {
   return bytes
 }
 
-function numberToBytes(num: number): Uint8Array {
-  const bytes = new Uint8Array(8)
-  for (let i = 7; i >= 0; i--) {
-    bytes[i] = num & 0xff
-    num = Math.floor(num / 256)
-  }
-  return bytes
-}
-
 async function generateHMAC(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
   const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-1" }, false, ["sign"])
 
@@ -54,12 +46,12 @@ async function generateHMAC(key: Uint8Array, data: Uint8Array): Promise<Uint8Arr
   return new Uint8Array(signature)
 }
 
-export function verifyTOTP(token: string, secret: string, window = 1): boolean {
+export async function verifyTOTP(token: string, secret: string, window = 1): Promise<boolean> {
   const currentTime = Math.floor(Date.now() / 1000 / 30)
 
   for (let i = -window; i <= window; i++) {
     const time = currentTime + i
-    const expectedToken = generateTOTPForTime(secret, time)
+    const expectedToken = await generateTOTPForTime(secret, time)
     if (token === expectedToken) {
       return true
     }
@@ -68,16 +60,20 @@ export function verifyTOTP(token: string, secret: string, window = 1): boolean {
   return false
 }
 
-function generateTOTPForTime(secret: string, time: number): string {
-  // Simplified TOTP generation for specific time
+async function generateTOTPForTime(secret: string, time: number): Promise<string> {
   const key = base32ToBytes(secret)
-  const timeBytes = numberToBytes(time)
+  const timeBytes = new ArrayBuffer(8)
+  const timeView = new DataView(timeBytes)
+  timeView.setUint32(4, time, false) // Big-endian
 
-  // For demo purposes, we'll use a simplified approach
-  // In production, use a proper TOTP library
-  const hash = Array.from(key).reduce((acc, byte, i) => {
-    return acc + byte + timeBytes[i % 8]
-  }, time)
+  const hmac = await generateHMAC(key, new Uint8Array(timeBytes))
 
-  return (hash % 1000000).toString().padStart(6, "0")
+  const offset = hmac[hmac.length - 1] & 0xf
+  const code =
+    ((hmac[offset] & 0x7f) << 24) |
+    ((hmac[offset + 1] & 0xff) << 16) |
+    ((hmac[offset + 2] & 0xff) << 8) |
+    (hmac[offset + 3] & 0xff)
+
+  return (code % 1000000).toString().padStart(6, "0")
 }
