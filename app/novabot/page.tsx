@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bot, Plus, Shield, ExternalLink, X, AlertTriangle } from "lucide-react"
+import { Bot, Plus, Shield, ExternalLink, X, AlertTriangle, Zap } from "lucide-react"
 import Link from "next/link"
 
 export default function NovaBotPage() {
@@ -54,7 +54,19 @@ export default function NovaBotPage() {
             <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400 mb-4">
               NovaBot
             </h1>
-            <p className="text-xl md:text-2xl text-indigo-200 mb-8">Advanced Discord Management</p>
+            <p className="text-xl md:text-2xl text-indigo-200 mb-4">Advanced Discord Management</p>
+
+            {/* Disclaimer */}
+            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-5 h-5 text-yellow-400" />
+                <span className="text-yellow-400 font-semibold">Important Notice</span>
+              </div>
+              <p className="text-yellow-200 text-sm">
+                This bot is <strong>not my creation</strong>. I am not responsible for any actions, damages, or
+                consequences resulting from the use of this bot. Use at your own risk and responsibility.
+              </p>
+            </div>
           </div>
 
           {/* Features */}
@@ -70,7 +82,7 @@ export default function NovaBotPage() {
               <p className="text-indigo-200 text-sm">Detailed user statistics and tracking</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <Plus className="w-8 h-8 text-indigo-400 mx-auto mb-4" />
+              <Zap className="w-8 h-8 text-indigo-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Custom Tools</h3>
               <p className="text-indigo-200 text-sm">Specialized utilities and features</p>
             </div>
@@ -121,10 +133,14 @@ export default function NovaBotPage() {
             </div>
 
             <div className="mb-6">
-              <p className="text-white/80 text-sm leading-relaxed">
+              <p className="text-white/80 text-sm leading-relaxed mb-4">
                 By adding NovaBot to your server, you acknowledge that all bot functions are provided for{" "}
                 <strong className="text-yellow-400">informational purposes only</strong>. Use responsibly and in
                 accordance with Discord's Terms of Service.
+              </p>
+              <p className="text-red-300 text-xs leading-relaxed">
+                <strong>Disclaimer:</strong> This bot is not created by me. I am not responsible for any damages,
+                actions, or consequences resulting from its use. Proceed at your own risk.
               </p>
             </div>
 
@@ -151,10 +167,13 @@ export default function NovaBotPage() {
       <footer className="container mx-auto px-6 py-8 border-t border-white/10 mt-16">
         <div className="text-center text-indigo-300">
           <p className="text-sm">
-            © 2024 NovaBot - Discord Bot by{" "}
+            © 2024 NovaBot - Third-party Discord Bot hosted by{" "}
             <Link href="/" className="text-indigo-400 hover:text-white transition-colors">
               DaniDema
             </Link>
+          </p>
+          <p className="text-xs text-white/40 mt-1">
+            Not affiliated with or created by the site owner. Use at your own discretion.
           </p>
         </div>
       </footer>
