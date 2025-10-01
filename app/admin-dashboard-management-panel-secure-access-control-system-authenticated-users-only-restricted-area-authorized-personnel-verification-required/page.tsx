@@ -17,10 +17,22 @@ import {
   Wrench,
   Power,
   PowerOff,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Eye,
 } from "lucide-react"
 import { AuthSession } from "@/lib/auth"
 
-type DashboardSection = "overview" | "analytics" | "site-editor" | "bot-manager" | "maintenance" | "settings"
+type DashboardSection =
+  | "overview"
+  | "analytics"
+  | "site-editor"
+  | "bot-manager"
+  | "bolzano-applications"
+  | "maintenance"
+  | "settings"
 
 export default function AdminDashboardPage() {
   const [isAuthorized, setIsAuthorized] = useState(false)
@@ -74,6 +86,7 @@ export default function AdminDashboardPage() {
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "site-editor", label: "Site Editor", icon: Globe },
     { id: "bot-manager", label: "Bot Manager", icon: Bot },
+    { id: "bolzano-applications", label: "Bolzano Applications", icon: FileText },
     { id: "maintenance", label: "Maintenance", icon: Wrench },
     { id: "settings", label: "Settings", icon: Settings },
   ]
@@ -130,10 +143,323 @@ export default function AdminDashboardPage() {
           {activeSection === "analytics" && <AnalyticsSection />}
           {activeSection === "site-editor" && <SiteEditorSection />}
           {activeSection === "bot-manager" && <BotManagerSection />}
+          {activeSection === "bolzano-applications" && <BolzanoApplicationsSection />}
           {activeSection === "maintenance" && <MaintenanceSection />}
           {activeSection === "settings" && <SettingsSection />}
         </div>
       </div>
+    </div>
+  )
+}
+
+// Nuova sezione per le applicazioni Bolzano RP
+function BolzanoApplicationsSection() {
+  const [applications, setApplications] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [filter, setFilter] = useState("all")
+  const [selectedApp, setSelectedApp] = useState<any>(null)
+
+  useEffect(() => {
+    loadApplications()
+  }, [filter])
+
+  const loadApplications = async () => {
+    try {
+      const res = await fetch(`/api/bolzano-rp/applications?status=${filter}`)
+      const data = await res.json()
+      setApplications(data)
+    } catch (error) {
+      console.error("Failed to load applications:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const updateApplicationStatus = async (id: string, status: string, notes?: string) => {
+    try {
+      const res = await fetch("/api/bolzano-rp/applications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          status,
+          notes,
+          reviewed_by: "admin",
+        }),
+      })
+
+      if (res.ok) {
+        await loadApplications()
+        setSelectedApp(null)
+        alert(`✅ Application ${status}!`)
+      }
+    } catch (error) {
+      console.error("Failed to update application:", error)
+      alert("❌ Failed to update application")
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return (
+          <span className="flex items-center gap-1 px-3 py-1 bg-yellow-900/30 border border-yellow-500/50 rounded-full text-yellow-300 text-xs">
+            <Clock className="w-3 h-3" />
+            Pending
+          </span>
+        )
+      case "approved":
+        return (
+          <span className="flex items-center gap-1 px-3 py-1 bg-green-900/30 border border-green-500/50 rounded-full text-green-300 text-xs">
+            <CheckCircle className="w-3 h-3" />
+            Approved
+          </span>
+        )
+      case "rejected":
+        return (
+          <span className="flex items-center gap-1 px-3 py-1 bg-red-900/30 border border-red-500/50 rounded-full text-red-300 text-xs">
+            <XCircle className="w-3 h-3" />
+            Rejected
+          </span>
+        )
+      default:
+        return null
+    }
+  }
+
+  if (isLoading) {
+    return <div className="text-center">Loading applications...</div>
+  }
+
+  return (
+    <div>
+      <h2 className="text-3xl font-bold mb-8">🇮🇹 Bolzano RP Admin Applications</h2>
+
+      {/* Stats Cards */}
+      <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="flex items-center gap-3 mb-2">
+            <FileText className="w-6 h-6 text-blue-400" />
+            <h3 className="font-semibold">Total</h3>
+          </div>
+          <p className="text-3xl font-bold">{applications.length}</p>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="flex items-center gap-3 mb-2">
+            <Clock className="w-6 h-6 text-yellow-400" />
+            <h3 className="font-semibold">Pending</h3>
+          </div>
+          <p className="text-3xl font-bold">{applications.filter((a) => a.status === "pending").length}</p>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="flex items-center gap-3 mb-2">
+            <CheckCircle className="w-6 h-6 text-green-400" />
+            <h3 className="font-semibold">Approved</h3>
+          </div>
+          <p className="text-3xl font-bold">{applications.filter((a) => a.status === "approved").length}</p>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="flex items-center gap-3 mb-2">
+            <XCircle className="w-6 h-6 text-red-400" />
+            <h3 className="font-semibold">Rejected</h3>
+          </div>
+          <p className="text-3xl font-bold">{applications.filter((a) => a.status === "rejected").length}</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2 mb-6">
+        {["all", "pending", "approved", "rejected"].map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              filter === f ? "bg-blue-600 text-white" : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+            }`}
+          >
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Applications List */}
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-white/5">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Nome Gioco</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Discord</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Età</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Data</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Azioni</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/10">
+              {applications.map((app) => (
+                <tr key={app.id} className="hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4 text-sm">{app.nome_gioco}</td>
+                  <td className="px-6 py-4 text-sm">{app.discord_tag}</td>
+                  <td className="px-6 py-4 text-sm">{app.eta}</td>
+                  <td className="px-6 py-4">{getStatusBadge(app.status)}</td>
+                  <td className="px-6 py-4 text-sm text-white/70">
+                    {new Date(app.submitted_at).toLocaleDateString("it-IT")}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => setSelectedApp(app)}
+                      className="flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded text-blue-300 hover:bg-blue-600/30 transition-colors text-sm"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {applications.length === 0 && (
+          <div className="text-center py-12">
+            <FileText className="w-12 h-12 text-white/40 mx-auto mb-4" />
+            <p className="text-white/60">No applications found</p>
+          </div>
+        )}
+      </div>
+
+      {/* Application Detail Modal */}
+      {selectedApp && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-gray-900 rounded-xl p-6 border border-white/20 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold">Application Details</h3>
+              <button
+                onClick={() => setSelectedApp(null)}
+                className="text-white/60 hover:text-white text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Personal Info */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-lg font-bold text-green-300 mb-3">📋 Informazioni Personali</h4>
+                <div className="grid md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-white/60">Nome nel gioco:</span>
+                    <p className="font-medium">{selectedApp.nome_gioco}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60">Discord Tag:</span>
+                    <p className="font-medium">{selectedApp.discord_tag}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60">Nome RP:</span>
+                    <p className="font-medium">{selectedApp.nome_rp}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60">Data di Nascita RP:</span>
+                    <p className="font-medium">{selectedApp.data_nascita_rp}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60">Età:</span>
+                    <p className="font-medium">{selectedApp.eta}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60">IP Address:</span>
+                    <p className="font-medium text-xs">{selectedApp.ip_address}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* RP Questions */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-lg font-bold text-green-300 mb-3">🎮 Domande RP</h4>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <span className="text-white/60 font-medium">FailRP:</span>
+                    <p className="mt-1">{selectedApp.failrp_spiegazione}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60 font-medium">RDM:</span>
+                    <p className="mt-1">{selectedApp.rdm_spiegazione}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60 font-medium">VDM:</span>
+                    <p className="mt-1">{selectedApp.vdm_spiegazione}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60 font-medium">Metagaming:</span>
+                    <p className="mt-1">{selectedApp.metagaming_spiegazione}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60 font-medium">Powergaming:</span>
+                    <p className="mt-1">{selectedApp.powergaming_spiegazione}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Personal Questions */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-lg font-bold text-green-300 mb-3">💭 Domande Personali</h4>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <span className="text-white/60 font-medium">Motivo per diventare Admin:</span>
+                    <p className="mt-1">{selectedApp.motivo_admin}</p>
+                  </div>
+                  <div>
+                    <span className="text-white/60 font-medium">Consapevolezza Responsabilità:</span>
+                    <p className="mt-1">{selectedApp.consapevolezza_responsabilita}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status & Actions */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-lg font-bold text-blue-300 mb-3">⚙️ Status & Actions</h4>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-white/60">Current Status:</span>
+                  {getStatusBadge(selectedApp.status)}
+                </div>
+
+                {selectedApp.status === "pending" && (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => updateApplicationStatus(selectedApp.id, "approved")}
+                      className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold transition-colors"
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => updateApplicationStatus(selectedApp.id, "rejected")}
+                      className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition-colors"
+                    >
+                      <XCircle className="w-5 h-5" />
+                      Reject
+                    </button>
+                  </div>
+                )}
+
+                {selectedApp.status !== "pending" && (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => updateApplicationStatus(selectedApp.id, "pending")}
+                      className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold transition-colors"
+                    >
+                      <RotateCcw className="w-5 h-5" />
+                      Reset to Pending
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -560,6 +886,7 @@ function OverviewSection() {
     month: 0,
     year: 0,
     botStatus: "stopped",
+    pendingApplications: 0,
   })
   const [loading, setLoading] = useState(true)
 
@@ -569,11 +896,15 @@ function OverviewSection() {
         const analyticsRes = await fetch("/api/analytics/stats")
         const analyticsData = await analyticsRes.json()
 
+        const applicationsRes = await fetch("/api/bolzano-rp/applications?status=pending")
+        const applicationsData = await applicationsRes.json()
+
         setStats({
           today: analyticsData.today || 0,
           month: analyticsData.month || 0,
           year: analyticsData.year || 0,
           botStatus: "running", // This would come from bot status API
+          pendingApplications: applicationsData.length || 0,
         })
       } catch (error) {
         console.error("Failed to load stats:", error)
@@ -614,11 +945,11 @@ function OverviewSection() {
 
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div className="flex items-center gap-3 mb-4">
-            <Globe className="w-8 h-8 text-purple-400" />
-            <h3 className="text-lg font-semibold">Monthly Visits</h3>
+            <FileText className="w-8 h-8 text-yellow-400" />
+            <h3 className="text-lg font-semibold">Pending Apps</h3>
           </div>
-          <p className="text-3xl font-bold text-purple-400">{stats.month.toLocaleString()}</p>
-          <p className="text-sm text-white/60">This month</p>
+          <p className="text-3xl font-bold text-yellow-400">{stats.pendingApplications}</p>
+          <p className="text-sm text-white/60">Bolzano RP applications</p>
         </div>
 
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
@@ -705,65 +1036,6 @@ function AnalyticsSection() {
           <div className="flex justify-between items-center p-4 bg-white/5 rounded-lg">
             <span>Session tracking</span>
             <span className="text-green-400">Running</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Settings Section
-function SettingsSection() {
-  return (
-    <div>
-      <h2 className="text-3xl font-bold mb-8">System Settings</h2>
-
-      <div className="space-y-6">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-          <h3 className="text-xl font-bold mb-4">Security Settings</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Two-Factor Authentication</p>
-                <p className="text-sm text-white/60">Additional security layer for admin access</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-sm text-green-400">Enabled</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">reCAPTCHA Protection</p>
-                <p className="text-sm text-white/60">Protect against automated attacks</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-sm text-green-400">Active</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-          <h3 className="text-xl font-bold mb-4">System Information</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-white/60">Server Status</p>
-              <p className="font-medium text-green-400">Online</p>
-            </div>
-            <div>
-              <p className="text-sm text-white/60">Database Status</p>
-              <p className="font-medium text-green-400">Connected</p>
-            </div>
-            <div>
-              <p className="text-sm text-white/60">Bot Repository</p>
-              <p className="font-medium">DaniDemaDD/BotManager</p>
-            </div>
-            <div>
-              <p className="text-sm text-white/60">Active Sessions</p>
-              <p className="font-medium">1</p>
-            </div>
           </div>
         </div>
       </div>
@@ -1014,6 +1286,107 @@ function MaintenanceSection() {
           >
             ✅ Remove All Page Maintenance
           </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SettingsSection() {
+  return (
+    <div>
+      <h2 className="text-3xl font-bold mb-8">System Settings</h2>
+
+      <div className="space-y-6">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <h3 className="text-xl font-bold mb-4">Security Settings</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Two-Factor Authentication</p>
+                <p className="text-sm text-white/60">Additional security layer for admin access</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                <span className="text-sm text-green-400">Enabled</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">reCAPTCHA Protection</p>
+                <p className="text-sm text-white/60">Protect against automated attacks</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                <span className="text-sm text-green-400">Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <h3 className="text-xl font-bold mb-4">Admin Accounts</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div>
+                <p className="font-medium">daniele@demartini.biz</p>
+                <p className="text-xs text-white/60">Primary Admin</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-xs text-green-400">Active</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+              <div>
+                <p className="font-medium">admin@danidema.xyz</p>
+                <p className="text-xs text-white/60">Secondary Admin</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-xs text-green-400">Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <h3 className="text-xl font-bold mb-4">Email Notifications</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Bolzano RP Applications</p>
+                <p className="text-sm text-white/60">Receive email when new applications are submitted</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                <span className="text-sm text-green-400">Enabled</span>
+              </div>
+            </div>
+            <p className="text-xs text-white/40">Notifications sent to: dani@danidema.xyz</p>
+          </div>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <h3 className="text-xl font-bold mb-4">System Information</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-white/60">Server Status</p>
+              <p className="font-medium text-green-400">Online</p>
+            </div>
+            <div>
+              <p className="text-sm text-white/60">Database Status</p>
+              <p className="font-medium text-green-400">Connected</p>
+            </div>
+            <div>
+              <p className="text-sm text-white/60">Bot Repository</p>
+              <p className="font-medium">DaniDemaDD/BotManager</p>
+            </div>
+            <div>
+              <p className="text-sm text-white/60">Active Sessions</p>
+              <p className="font-medium">1</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
