@@ -227,7 +227,7 @@ export default function HomePage() {
             className="flex flex-wrap justify-center gap-x-2 gap-y-3 mb-6 max-w-2xl mx-auto animate-fade-in"
             style={{ animationDelay: "0.6s" }}
           >
-            {socialLinks.map((social, index) => (
+            {socialLinks.map((social) => (
               <a
                 key={social.name}
                 href={social.url}
@@ -247,7 +247,7 @@ export default function HomePage() {
 
           {/* Tool Links */}
           <div className="flex justify-center gap-x-2 gap-y-3 mb-0 animate-fade-in" style={{ animationDelay: "0.8s" }}>
-            {toolLinks.map((tool, index) => (
+            {toolLinks.map((tool) => (
               <a
                 key={tool.name}
                 href={tool.url}
@@ -258,14 +258,12 @@ export default function HomePage() {
               >
                 {tool.icon === "shopping-bag" ? (
                   <ShoppingBag className="w-8 h-8 text-white transition-all duration-300 group-hover:text-gray-300" />
-                ) : tool.icon.startsWith("http") ? (
+                ) : (
                   <img
                     src={tool.icon || "/placeholder.svg"}
                     alt={`${tool.name} icon`}
                     className="w-8 h-8 filter brightness-0 invert transition-all duration-300 group-hover:brightness-100 group-hover:invert-0"
                   />
-                ) : (
-                  <span className="text-xl">{tool.icon}</span>
                 )}
               </a>
             ))}
