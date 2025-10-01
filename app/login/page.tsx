@@ -75,19 +75,10 @@ export default function LoginPage() {
         throw new Error("Please complete the reCAPTCHA verification")
       }
 
-      // Verify credentials - accetta entrambi gli admin
-      const validAdmins = [
-        { email: "daniele@demartini.biz", password: "FabioDaniele11$" },
-        { email: "admin@danidema.xyz", password: "FabioDaniele11$" },
-      ]
-
-      const isValidAdmin = validAdmins.some((admin) => email === admin.email && password === admin.password)
-
-      if (!isValidAdmin) {
+      // Verify credentials
+      if (email !== "daniele@demartini.biz" || password !== "FabioDaniele11$") {
         throw new Error("Invalid email or password")
       }
-
-      console.log("Credentials verified successfully")
 
       // Verify reCAPTCHA token with backend
       const verifyResponse = await fetch("/api/verify-recaptcha", {
