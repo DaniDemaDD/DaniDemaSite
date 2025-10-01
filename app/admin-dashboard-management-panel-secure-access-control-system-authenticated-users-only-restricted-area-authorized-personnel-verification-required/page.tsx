@@ -14,13 +14,10 @@ import {
   Save,
   Trash2,
   Plus,
-  Wrench,
-  Power,
-  PowerOff,
 } from "lucide-react"
 import { AuthSession } from "@/lib/auth"
 
-type DashboardSection = "overview" | "analytics" | "site-editor" | "bot-manager" | "maintenance" | "settings"
+type DashboardSection = "overview" | "analytics" | "site-editor" | "bot-manager" | "settings"
 
 export default function AdminDashboardPage() {
   const [isAuthorized, setIsAuthorized] = useState(false)
@@ -74,7 +71,6 @@ export default function AdminDashboardPage() {
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "site-editor", label: "Site Editor", icon: Globe },
     { id: "bot-manager", label: "Bot Manager", icon: Bot },
-    { id: "maintenance", label: "Maintenance", icon: Wrench },
     { id: "settings", label: "Settings", icon: Settings },
   ]
 
@@ -130,7 +126,6 @@ export default function AdminDashboardPage() {
           {activeSection === "analytics" && <AnalyticsSection />}
           {activeSection === "site-editor" && <SiteEditorSection />}
           {activeSection === "bot-manager" && <BotManagerSection />}
-          {activeSection === "maintenance" && <MaintenanceSection />}
           {activeSection === "settings" && <SettingsSection />}
         </div>
       </div>
@@ -765,255 +760,6 @@ function SettingsSection() {
               <p className="font-medium">1</p>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Maintenance Section - Completamente funzionale
-function MaintenanceSection() {
-  const [maintenanceSettings, setMaintenanceSettings] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-
-  useEffect(() => {
-    loadMaintenanceSettings()
-  }, [])
-
-  const loadMaintenanceSettings = async () => {
-    try {
-      const res = await fetch("/api/maintenance")
-      const data = await res.json()
-      setMaintenanceSettings(data)
-    } catch (error) {
-      console.error("Failed to load maintenance settings:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const updateMaintenanceStatus = async (routePath: string, isMaintenanceMode: boolean, message?: string) => {
-    setIsSaving(true)
-    try {
-      const res = await fetch("/api/maintenance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          route_path: routePath,
-          is_maintenance: isMaintenanceMode,
-          maintenance_message:
-            message || "This page is currently under maintenance. We apologize for the inconvenience.",
-        }),
-      })
-
-      if (res.ok) {
-        await loadMaintenanceSettings()
-        const action = isMaintenanceMode ? "enabled" : "disabled"
-        const type = routePath === "__GLOBAL__" ? "Global maintenance" : `Route ${routePath} maintenance`
-        alert(`✅ ${type} ${action} successfully!`)
-      } else {
-        throw new Error("Failed to update")
-      }
-    } catch (error) {
-      console.error("Failed to update maintenance:", error)
-      alert("❌ Failed to update maintenance status")
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const toggleGlobalMaintenance = () => {
-    const globalSetting = maintenanceSettings.find((s) => s.route_path === "__GLOBAL__")
-    const newStatus = !globalSetting?.is_maintenance
-
-    if (newStatus) {
-      const confirmed = confirm(
-        "🚨 This will put the ENTIRE SITE in maintenance mode (except login/2FA).\n\nAll visitors will see a maintenance page.\n\nContinue?",
-      )
-      if (!confirmed) return
-    } else {
-      const confirmed = confirm("✅ Remove global maintenance mode?\n\nThe site will be fully accessible again.")
-      if (!confirmed) return
-    }
-
-    updateMaintenanceStatus(
-      "__GLOBAL__",
-      newStatus,
-      "The entire site is currently under maintenance. We apologize for the inconvenience and will be back soon!",
-    )
-  }
-
-  const toggleRouteMaintenance = (routePath: string) => {
-    const routeSetting = maintenanceSettings.find((s) => s.route_path === routePath)
-    const newStatus = !routeSetting?.is_maintenance
-
-    const action = newStatus ? "enable" : "disable"
-    const confirmed = confirm(
-      `${newStatus ? "🔧" : "✅"} ${action.charAt(0).toUpperCase() + action.slice(1)} maintenance for ${routePath}?`,
-    )
-    if (!confirmed) return
-
-    updateMaintenanceStatus(routePath, newStatus)
-  }
-
-  if (isLoading) {
-    return (
-      <div className="text-center">
-        <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
-        <p>Loading maintenance settings...</p>
-      </div>
-    )
-  }
-
-  const globalSetting = maintenanceSettings.find((s) => s.route_path === "__GLOBAL__")
-  const routeSettings = maintenanceSettings.filter((s) => s.route_path !== "__GLOBAL__")
-
-  return (
-    <div>
-      <h2 className="text-3xl font-bold mb-8">🛠️ Maintenance Management</h2>
-
-      {/* Global Maintenance Control */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h3 className="text-xl font-bold text-red-300">🚨 Global Site Maintenance</h3>
-            <p className="text-white/60 text-sm">
-              Puts the entire site in maintenance mode (login/2FA remain accessible)
-            </p>
-          </div>
-          <button
-            onClick={toggleGlobalMaintenance}
-            disabled={isSaving}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50 ${
-              globalSetting?.is_maintenance
-                ? "bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-green-500/25"
-                : "bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-red-500/25"
-            }`}
-          >
-            {isSaving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Updating...
-              </>
-            ) : globalSetting?.is_maintenance ? (
-              <>
-                <Power className="w-5 h-5" />
-                Remove Global Maintenance
-              </>
-            ) : (
-              <>
-                <PowerOff className="w-5 h-5" />
-                Enable Global Maintenance
-              </>
-            )}
-          </button>
-        </div>
-
-        {globalSetting?.is_maintenance && (
-          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 animate-pulse">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 bg-red-400 rounded-full animate-ping"></div>
-              <p className="text-red-300 text-sm font-bold">🔴 GLOBAL MAINTENANCE ACTIVE</p>
-            </div>
-            <p className="text-red-200 text-xs">All pages except login and 2FA are showing maintenance page</p>
-            <p className="text-red-100 text-xs mt-1 italic">Message: "{globalSetting.maintenance_message}"</p>
-          </div>
-        )}
-      </div>
-
-      {/* Individual Route Controls */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-        <h3 className="text-xl font-bold mb-6">📄 Individual Page Maintenance</h3>
-
-        <div className="space-y-4">
-          {routeSettings.map((setting) => (
-            <div
-              key={setting.route_path}
-              className={`flex justify-between items-center p-4 rounded-lg border transition-all duration-300 ${
-                setting.is_maintenance
-                  ? "bg-red-900/20 border-red-500/30"
-                  : "bg-white/5 border-white/10 hover:bg-white/10"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-3 h-3 rounded-full ${setting.is_maintenance ? "bg-red-400 animate-pulse" : "bg-green-400"}`}
-                ></div>
-                <div>
-                  <p className="font-medium">{setting.route_path}</p>
-                  <p className={`text-sm ${setting.is_maintenance ? "text-red-300" : "text-green-300"}`}>
-                    {setting.is_maintenance ? "🔧 In maintenance mode" : "✅ Active and accessible"}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => toggleRouteMaintenance(setting.route_path)}
-                disabled={isSaving || globalSetting?.is_maintenance}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  setting.is_maintenance
-                    ? "bg-green-600/20 border border-green-500/30 text-green-300 hover:bg-green-600/30 hover:shadow-lg hover:shadow-green-500/25"
-                    : "bg-red-600/20 border border-red-500/30 text-red-300 hover:bg-red-600/30 hover:shadow-lg hover:shadow-red-500/25"
-                }`}
-              >
-                {setting.is_maintenance ? "✅ Remove Maintenance" : "🔧 Enable Maintenance"}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {routeSettings.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-white/60">No individual routes configured for maintenance</p>
-          </div>
-        )}
-
-        {globalSetting?.is_maintenance && (
-          <div className="mt-6 text-center bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
-            <p className="text-yellow-400 text-sm font-medium">⚠️ Individual controls disabled</p>
-            <p className="text-yellow-300 text-xs mt-1">Remove global maintenance first to control individual pages</p>
-          </div>
-        )}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 mt-8">
-        <h3 className="text-lg font-bold mb-4">🚀 Quick Actions</h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          <button
-            onClick={() => {
-              const confirmed = confirm(
-                "🔧 Enable maintenance for ALL individual pages?\n\nThis will not affect global settings.",
-              )
-              if (confirmed) {
-                routeSettings.forEach((setting) => {
-                  if (!setting.is_maintenance) {
-                    updateMaintenanceStatus(setting.route_path, true)
-                  }
-                })
-              }
-            }}
-            disabled={isSaving || globalSetting?.is_maintenance}
-            className="px-4 py-3 bg-red-600/20 border border-red-500/30 rounded-lg text-red-300 hover:bg-red-600/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            🔧 Enable All Page Maintenance
-          </button>
-          <button
-            onClick={() => {
-              const confirmed = confirm("✅ Remove maintenance from ALL individual pages?")
-              if (confirmed) {
-                routeSettings.forEach((setting) => {
-                  if (setting.is_maintenance) {
-                    updateMaintenanceStatus(setting.route_path, false)
-                  }
-                })
-              }
-            }}
-            disabled={isSaving || globalSetting?.is_maintenance}
-            className="px-4 py-3 bg-green-600/20 border border-green-500/30 rounded-lg text-green-300 hover:bg-green-600/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            ✅ Remove All Page Maintenance
-          </button>
         </div>
       </div>
     </div>
