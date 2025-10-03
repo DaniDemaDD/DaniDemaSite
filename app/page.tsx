@@ -52,7 +52,7 @@ export default function HomePage() {
   const socialLinks = [
     {
       name: "Discord",
-      url: "https://discord.gg/danidema",
+      url: "https://discord.gg/dani.dema",
       icon: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/discord.svg",
     },
     {
@@ -72,7 +72,7 @@ export default function HomePage() {
     },
     {
       name: "Instagram",
-      url: "https://instagram.com/danidema",
+      url: "https://instagram.com/dani.dema_",
       icon: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg",
     },
     {
@@ -87,7 +87,7 @@ export default function HomePage() {
     },
     {
       name: "GitHub",
-      url: "https://github.com/DaniDema",
+      url: "https://github.com/DaniDemaDD",
       icon: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg",
     },
     {
@@ -97,7 +97,7 @@ export default function HomePage() {
     },
     {
       name: "Email",
-      url: "mailto:danidemasupport@gmail.com",
+      url: "mailto:dani@danidema.xyz",
       icon: "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/gmail.svg",
     },
   ]
