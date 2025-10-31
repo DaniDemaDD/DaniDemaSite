@@ -28,10 +28,25 @@ export const AuthSession = {
     return false
   },
 
+  setDiscordUser: (user: { id: string; username: string; email: string; avatar: string }) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("discordUser", JSON.stringify(user))
+    }
+  },
+
+  getDiscordUser: (): { id: string; username: string; email: string; avatar: string } | null => {
+    if (typeof window !== "undefined") {
+      const user = localStorage.getItem("discordUser")
+      return user ? JSON.parse(user) : null
+    }
+    return null
+  },
+
   clearSession: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("isLoggedIn")
       localStorage.removeItem("is2FAVerified")
+      localStorage.removeItem("discordUser")
     }
   },
 }
