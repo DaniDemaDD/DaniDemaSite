@@ -124,10 +124,9 @@ export default function LoginPage() {
         // Require 2FA for main admins
         window.location.href = "/2fa"
       } else {
-        // Bypass 2FA for Bolzano operators - set as verified and go directly to dashboard
         AuthSession.set2FAStatus(true)
         window.location.href =
-          "/admin-dashboard-management-panel-secure-access-control-system-authenticated-users-only-restricted-area-authorized-personnel-verification-required"
+          "/admin-dashboard-management-panel-secure-access-control-system-authenticated-users-only-restricted-area-authorized-personnel-verification-required?view=bolzano"
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
