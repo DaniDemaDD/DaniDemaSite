@@ -110,23 +110,19 @@ export default function LoginPage() {
 
       console.log("reCAPTCHA v2 verified successfully")
 
-      const accountsWithout2FA = ["chiccoderiso@operator.danidema.xyz", "nas@operator.danidema.xyz"]
-      const requiresVerification = !accountsWithout2FA.includes(email)
+      const bolzanoOperators = ["chiccoderiso@operator.danidema.xyz", "nas@operator.danidema.xyz"]
+      const isBolzanoOperator = bolzanoOperators.includes(email)
 
-      // Set login status
       AuthSession.setLoginStatus(true)
       AuthSession.set2FAStatus(false)
 
-      // Simulate login process
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      if (requiresVerification) {
-        // Require 2FA for main admins
-        window.location.href = "/2fa"
+      if (isBolzanoOperator) {
+        window.location.href = "/bolzano-rp/manage"
       } else {
-        AuthSession.set2FAStatus(true)
-        window.location.href =
-          "/admin-dashboard-management-panel-secure-access-control-system-authenticated-users-only-restricted-area-authorized-personnel-verification-required?view=bolzano"
+        // Main admins go through 2FA
+        window.location.href = "/2fa"
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
