@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
+import Script from "next/script"
 import { MaintenanceCheck } from "@/components/maintenance-check"
 
 const inter = Inter({
@@ -34,6 +35,9 @@ export const metadata: Metadata = {
     generator: 'v0.app'
 }
 
+import Script from "next/script"
+import MaintenanceCheck from "@/components/MaintenanceCheck"
+
 export default function RootLayout({
   children,
 }: {
@@ -42,7 +46,25 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="antialiased">
-        <MaintenanceCheck>{children}</MaintenanceCheck>
+        <MaintenanceCheck>
+          {children}
+        </MaintenanceCheck>
+
+        {/* Tawk.to (sempre attivo anche in manutenzione) */}
+        <Script id="tawk-to" strategy="afterInteractive">
+          {`
+            var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+            (function(){
+              var s1=document.createElement("script"),
+                  s0=document.getElementsByTagName("script")[0];
+              s1.async=true;
+              s1.src='https://embed.tawk.to/6951b7c45823b7197c1548ec/default';
+              s1.charset='UTF-8';
+              s1.setAttribute('crossorigin','*');
+              s0.parentNode.insertBefore(s1,s0);
+            })();
+          `}
+        </Script>
       </body>
     </html>
   )
