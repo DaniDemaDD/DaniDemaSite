@@ -14,29 +14,26 @@ const inter = Inter({
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"], // Rimosso '900' che non è disponibile
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-mono",
   display: "swap",
 })
 
 export const metadata: Metadata = {
-  title: "DANIDEMA",
-  description: "Developer • Creator • :)",
-  keywords: ["DaniDema", "developer", "creator", "tech", "programming"],
+  title: "DaniDema",
+  description: "Developer • Creator • Made with love",
+  keywords: ["DaniDema", "developer", "creator", "tech", "programming", "discord bots", "websites"],
   authors: [{ name: "DaniDema" }],
   viewport: "width=device-width, initial-scale=1",
   themeColor: "#000000",
   openGraph: {
-    title: "DANIDEMA",
-    description: "Developer • Creator • :)",
+    title: "DaniDema",
+    description: "Developer • Creator • Made with love",
     type: "website",
     locale: "en_US",
   },
     generator: 'v0.app'
 }
-
-import Script from "next/script"
-import MaintenanceCheck from "@/components/MaintenanceCheck"
 
 export default function RootLayout({
   children,
@@ -45,12 +42,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <head>
+        {/* Cloudflare Turnstile */}
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+      </head>
       <body className="antialiased">
-        <MaintenanceCheck>
-          {children}
-        </MaintenanceCheck>
+        <MaintenanceCheck>{children}</MaintenanceCheck>
 
-        {/* Tawk.to (sempre attivo anche in manutenzione) */}
+        {/* Tawk.to Chat Widget */}
         <Script id="tawk-to" strategy="afterInteractive">
           {`
             var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();

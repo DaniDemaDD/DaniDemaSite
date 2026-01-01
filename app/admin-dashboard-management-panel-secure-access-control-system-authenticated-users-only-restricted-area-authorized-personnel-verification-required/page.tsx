@@ -22,6 +22,8 @@ import {
   XCircle,
   Clock,
   Eye,
+  ShoppingCart,
+  Search,
 } from "lucide-react"
 import { AuthSession } from "@/lib/auth"
 
@@ -31,6 +33,7 @@ type DashboardSection =
   | "site-editor"
   | "bot-manager"
   | "bolzano-applications"
+  | "orders"
   | "maintenance"
   | "settings"
 
@@ -87,6 +90,7 @@ export default function AdminDashboardPage() {
     { id: "site-editor", label: "Site Editor", icon: Globe },
     { id: "bot-manager", label: "Bot Manager", icon: Bot },
     { id: "bolzano-applications", label: "Bolzano Applications", icon: FileText },
+    { id: "orders", label: "Orders", icon: ShoppingCart },
     { id: "maintenance", label: "Maintenance", icon: Wrench },
     { id: "settings", label: "Settings", icon: Settings },
   ]
@@ -144,10 +148,177 @@ export default function AdminDashboardPage() {
           {activeSection === "site-editor" && <SiteEditorSection />}
           {activeSection === "bot-manager" && <BotManagerSection />}
           {activeSection === "bolzano-applications" && <BolzanoApplicationsSection />}
+          {activeSection === "orders" && <OrdersSection />}
           {activeSection === "maintenance" && <MaintenanceSection />}
           {activeSection === "settings" && <SettingsSection />}
         </div>
       </div>
+    </div>
+  )
+}
+
+function OrdersSection() {
+  const [searchCode, setSearchCode] = useState("")
+  const [order, setOrder] = useState<any>(null)
+  const [isSearching, setIsSearching] = useState(false)
+  const [error, setError] = useState("")
+  const [recentOrders, setRecentOrders] = useState<any[]>([])
+
+  const searchOrder = async () => {
+    if (!searchCode.trim()) return
+
+    setIsSearching(true)
+    setError("")
+    setOrder(null)
+
+    try {
+      const response = await fetch(`/api/orders/lookup?code=${encodeURIComponent(searchCode)}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setOrder(data.order)
+        // Add to recent if not already there
+        setRecentOrders((prev) => {
+          const exists = prev.find((o) => o.orderCode === data.order.orderCode)
+          if (exists) return prev
+          return [data.order, ...prev].slice(0, 10)
+        })
+      } else {
+        setError(data.error || "Order not found")
+      }
+    } catch (err) {
+      setError("Failed to search order")
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  return (
+    <div>
+      <h2 className="text-3xl font-bold mb-8">Orders Management</h2>
+
+      {/* Search Box */}
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
+        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <Search className="w-5 h-5 text-blue-400" />
+          Search Order by Code
+        </h3>
+        <div className="flex gap-4">
+          <input
+            type="text"
+            value={searchCode}
+            onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
+            placeholder="Enter order code (e.g., DD-XXXXXXXX)"
+            className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-blue-500"
+            onKeyDown={(e) => e.key === "Enter" && searchOrder()}
+          />
+          <button
+            onClick={searchOrder}
+            disabled={isSearching}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg font-bold transition-colors flex items-center gap-2"
+          >
+            {isSearching ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <Search className="w-5 h-5" />
+            )}
+            Search
+          </button>
+        </div>
+
+        {error && (
+          <div className="mt-4 bg-red-900/20 border border-red-500/30 rounded-lg p-4 text-red-300">
+            <XCircle className="w-5 h-5 inline mr-2" />
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Order Details */}
+      {order && (
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-green-400" />
+              Order Details
+            </h3>
+            <span className="px-3 py-1 bg-green-900/30 border border-green-500/50 rounded-full text-green-300 text-sm">
+              <CheckCircle className="w-4 h-4 inline mr-1" />
+              Found
+            </span>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <span className="text-white/60 text-sm">Order Code</span>
+                <p className="font-mono text-purple-300 text-lg">{order.orderCode}</p>
+              </div>
+              <div>
+                <span className="text-white/60 text-sm">Customer Name</span>
+                <p className="font-medium">{order.name}</p>
+              </div>
+              <div>
+                <span className="text-white/60 text-sm">Email</span>
+                <p className="font-medium">{order.email}</p>
+              </div>
+              <div>
+                <span className="text-white/60 text-sm">Discord</span>
+                <p className="font-medium">{order.discord}</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <span className="text-white/60 text-sm">Service</span>
+                <p className="font-medium">{order.service}</p>
+              </div>
+              <div>
+                <span className="text-white/60 text-sm">Price</span>
+                <p className="font-bold text-green-400 text-xl">{order.price}</p>
+              </div>
+              <div>
+                <span className="text-white/60 text-sm">Date</span>
+                <p className="font-medium">{order.date}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <span className="text-white/60 text-sm">Request Details</span>
+            <p className="mt-2 bg-black/20 rounded-lg p-4 text-white/90">{order.details}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Recent Searches */}
+      {recentOrders.length > 0 && (
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-yellow-400" />
+            Recent Searches
+          </h3>
+          <div className="space-y-3">
+            {recentOrders.map((o) => (
+              <div
+                key={o.orderCode}
+                className="flex items-center justify-between bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors cursor-pointer"
+                onClick={() => {
+                  setSearchCode(o.orderCode)
+                  setOrder(o)
+                }}
+              >
+                <div>
+                  <p className="font-mono text-purple-300">{o.orderCode}</p>
+                  <p className="text-sm text-white/60">
+                    {o.name} - {o.service}
+                  </p>
+                </div>
+                <span className="text-green-400 font-bold">{o.price}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
