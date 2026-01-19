@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Globe, Code, Sparkles, ArrowRight, Heart, ShoppingCart, Plus, Minus, X, Check } from "lucide-react"
+import { Globe, Code, Sparkles, ArrowRight, Heart, ShoppingCart, Plus, Minus, X, Check, Settings, Trash2 } from "lucide-react"
 
 type Language = "it" | "en" | "de" | "fr" | "es" | "pt" | "nl" | "pl" | "ru" | "ja"
 
@@ -140,7 +140,7 @@ const translations: Record<Language, Record<string, string>> = {
     contactTitle: "Kontakt",
     contactDesc: "Fragen? Kontaktiere mich auf Discord oder per E-Mail",
     discord: "Discord",
-    email: "E-Mail",
+    email: "Email",
     community: "Discord Community",
     footerText: "Made by DaniDema",
     terms: "Nutzungsbedingungen",
@@ -512,12 +512,13 @@ const services = [
 ]
 
 export default function HomePage() {
-  const [language, setLanguage] = useState<Language | null>(null)
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>("en")
+  const [selectedLang, setSelectedLang] = useState<"en" | "it" | null>(null)
   const [showLanguageSelector, setShowLanguageSelector] = useState(true)
-  const [isLoaded, setIsLoaded] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [language, setLanguage] = useState<"en" | "it" | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -526,7 +527,7 @@ export default function HomePage() {
 
     if (savedLang) {
       setLanguage(savedLang)
-      setSelectedLanguage(savedLang)
+      setSelectedLang(savedLang)
       setShowLanguageSelector(false)
     }
     if (savedCart) {
@@ -539,20 +540,14 @@ export default function HomePage() {
     localStorage.setItem("danidema-cart", JSON.stringify(cart))
   }, [cart])
 
-  const selectLanguage = () => {
-    setLanguage(selectedLanguage)
-    localStorage.setItem("danidema-language", selectedLanguage)
-    setShowLanguageSelector(false)
-  }
-
   const addToCart = (serviceKey: string, price: number) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.key === serviceKey)
-      if (existing) {
-        return prev.map((item) => (item.key === serviceKey ? { ...item, quantity: item.quantity + 1 } : item))
-      }
-      return [...prev, { key: serviceKey, price, quantity: 1 }]
-    })
+    const existing = cart.find((item) => item.key === serviceKey)
+    if (existing) {
+      setCart(cart.map((item) => (item.key === serviceKey ? { ...item, quantity: item.quantity + 1 } : item)))
+    } else {
+      setCart([...cart, { key: serviceKey, price, quantity: 1 }])
+    }
+    setShowCart(true)
   }
 
   const removeFromCart = (serviceKey: string) => {
@@ -571,6 +566,19 @@ export default function HomePage() {
         })
         .filter((item) => item.quantity > 0)
     })
+  }
+
+  const clearAllOrders = () => {
+    setCart([])
+    localStorage.removeItem("danidema-cart")
+  }
+
+  const clearAllData = () => {
+    localStorage.removeItem("danidema-language")
+    localStorage.removeItem("danidema-cart")
+    setLanguage(null)
+    setSelectedLang("en")
+    setShowLanguageSelector(true)
   }
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -595,17 +603,17 @@ export default function HomePage() {
           {/* Language Selection - Apple Style */}
           <div className="mb-8">
             <p className="text-zinc-500 text-center text-sm mb-6 font-light">
-              {translations[selectedLanguage].selectLanguage}
+              {translations[selectedLang || "en"].selectLanguage}
             </p>
 
             <div className="bg-zinc-900/50 rounded-2xl overflow-hidden border border-zinc-800">
               {languages.map((lang, index) => (
                 <button
                   key={lang.code}
-                  onClick={() => setSelectedLanguage(lang.code)}
+                  onClick={() => setSelectedLang(lang.code)}
                   className={`w-full flex items-center justify-between px-5 py-4 transition-all duration-200 ${
                     index !== languages.length - 1 ? "border-b border-zinc-800" : ""
-                  } ${selectedLanguage === lang.code ? "bg-zinc-800/50" : "hover:bg-zinc-800/30"}`}
+                  } ${selectedLang === lang.code ? "bg-zinc-800/50" : "hover:bg-zinc-800/30"}`}
                 >
                   <div className="flex items-center gap-4">
                     <span className="text-2xl">{lang.flag}</span>
@@ -614,7 +622,7 @@ export default function HomePage() {
                       <p className="text-zinc-500 text-sm">{lang.name}</p>
                     </div>
                   </div>
-                  {selectedLanguage === lang.code && <Check className="w-5 h-5 text-blue-500" />}
+                  {selectedLang === lang.code && <Check className="w-5 h-5 text-blue-500" />}
                 </button>
               ))}
             </div>
@@ -622,10 +630,17 @@ export default function HomePage() {
 
           {/* Continue Button - Apple Style */}
           <button
-            onClick={selectLanguage}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-4 px-6 rounded-xl transition-all duration-300 text-lg"
+            onClick={() => {
+              if (selectedLang) {
+                setLanguage(selectedLang)
+                localStorage.setItem("danidema-language", selectedLang)
+                setShowLanguageSelector(false)
+              }
+            }}
+            disabled={!selectedLang}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-4 px-6 rounded-xl transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {translations[selectedLanguage].continue}
+            {translations[selectedLang || "en"].continue}
           </button>
         </div>
       </div>
@@ -886,31 +901,106 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="relative py-8 px-4 border-t border-zinc-800">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-zinc-500">
-            <span>{t.footerText}</span>
-            <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col items-center gap-6 mb-6">
+            <iframe
+              width="380"
+              height="38"
+              style={{ border: 0 }}
+              src="https://climate.stripe.com/badge/oTZgGj?theme=light&size=small&locale=it-IT"
+              title="Stripe Climate Badge"
+            ></iframe>
           </div>
-          <div className="flex gap-6 text-sm text-zinc-500">
-            <a
-              href="https://home.danidema.xyz/terms"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              {t.terms}
-            </a>
-            <a
-              href="https://home.danidema.xyz/policy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors"
-            >
-              {t.privacy}
-            </a>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-zinc-500">
+              <span>{t.footerText}</span>
+              <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+            </div>
+            <div className="flex gap-6 text-sm text-zinc-500">
+              <a
+                href="https://home.danidema.xyz/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                {t.terms}
+              </a>
+              <a
+                href="https://home.danidema.xyz/policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                {t.privacy}
+              </a>
+            </div>
           </div>
         </div>
       </footer>
+
+      {/* Settings Button (Fixed Bottom Right) */}
+      <button
+        onClick={() => setShowSettings(true)}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
+      >
+        <Settings className="w-6 h-6" />
+      </button>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Settings</h2>
+              <button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white">
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <button
+                onClick={clearAllOrders}
+                className="w-full p-4 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 font-medium transition-all flex items-center justify-between"
+              >
+                <span>Clear All My Orders</span>
+                <Trash2 className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={clearAllData}
+                className="w-full p-4 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 rounded-lg text-orange-400 font-medium transition-all flex items-center justify-between"
+              >
+                <span>Delete All My Data</span>
+                <Trash2 className="w-5 h-5" />
+              </button>
+
+              <div className="p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                <label className="text-sm text-zinc-400 mb-2 block">Change Language</label>
+                <select
+                  value={selectedLang}
+                  onChange={(e) => {
+                    setSelectedLang(e.target.value as Language)
+                    setShowLanguageSelector(true)
+                    setShowSettings(false)
+                  }}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-white"
+                >
+                  <option value="en">English</option>
+                  <option value="it">Italiano</option>
+                  <option value="de">Deutsch</option>
+                  <option value="fr">Français</option>
+                  <option value="es">Español</option>
+                  <option value="pt">Português</option>
+                  <option value="nl">Nederlands</option>
+                  <option value="pl">Polski</option>
+                  <option value="ru">Русский</option>
+                  <option value="ja">日本語</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

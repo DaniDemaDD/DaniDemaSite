@@ -237,15 +237,26 @@ function OrdersSection() {
       {/* Order Details */}
       {order && (
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
             <h3 className="text-lg font-bold flex items-center gap-2">
               <ShoppingCart className="w-5 h-5 text-green-400" />
               Order Details
             </h3>
-            <span className="px-3 py-1 bg-green-900/30 border border-green-500/50 rounded-full text-green-300 text-sm">
-              <CheckCircle className="w-4 h-4 inline mr-1" />
-              Found
-            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() =>
+                  window.open(`/api/orders/download-pdf?code=${order.orderCode}`, "_blank")
+                }
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors flex items-center gap-2 text-sm"
+              >
+                <FileText className="w-4 h-4" />
+                Download PDF
+              </button>
+              <span className="px-3 py-1 bg-green-900/30 border border-green-500/50 rounded-full text-green-300 text-sm">
+                <CheckCircle className="w-4 h-4 inline mr-1" />
+                Found
+              </span>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
