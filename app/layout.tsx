@@ -45,6 +45,8 @@ export default function RootLayout({
       <head>
         {/* Cloudflare Turnstile */}
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+        {/* Stripe Buy Button */}
+        <script async src="https://js.stripe.com/v3/buy-button.js"></script>
       </head>
       <body className="antialiased">
         <MaintenanceCheck>{children}</MaintenanceCheck>

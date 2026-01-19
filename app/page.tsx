@@ -459,13 +459,56 @@ interface CartItem {
 }
 
 const services = [
-  { key: "discordBots", price: 3, icon: "🤖", from: true },
-  { key: "websites", price: 7, icon: "🌐", from: false },
-  { key: "websitesWithDomain", price: 12, icon: "🔗", from: false },
-  { key: "accounts", price: 3, icon: "👤", from: false },
-  { key: "emails", price: 0.99, icon: "📧", from: false },
-  { key: "hosting", price: 15, icon: "🚀", from: false, oneTime: true },
-  { key: "removeBranding", price: 7, icon: "✨", from: false },
+  {
+    key: "discordBots",
+    price: 3,
+    icon: "🤖",
+    from: true,
+    stripeBuyButtonId: "buy_btn_1SrMhVRWjkV59RDtQF4GYKN0",
+  },
+  {
+    key: "websites",
+    price: 7,
+    icon: "🌐",
+    from: false,
+    stripeBuyButtonId: "buy_btn_1SrMiqRWjkV59RDtQ5MMjw0e",
+  },
+  {
+    key: "websitesWithDomain",
+    price: 12,
+    icon: "🔗",
+    from: false,
+    stripeBuyButtonId: "buy_btn_1SrMkgRWjkV59RDtsrUHlAkD",
+  },
+  {
+    key: "accounts",
+    price: 3,
+    icon: "👤",
+    from: false,
+    stripeBuyButtonId: "buy_btn_1SrMljRWjkV59RDtDyOh1ono",
+  },
+  {
+    key: "emails",
+    price: 0.99,
+    icon: "📧",
+    from: false,
+    stripeBuyButtonId: "buy_btn_1SrMmzRWjkV59RDt2h1sTT1W",
+  },
+  {
+    key: "hosting",
+    price: 15,
+    icon: "🚀",
+    from: false,
+    oneTime: true,
+    stripeBuyButtonId: "buy_btn_1SrMnlRWjkV59RDtVMr6himC",
+  },
+  {
+    key: "removeBranding",
+    price: 7,
+    icon: "✨",
+    from: false,
+    stripeBuyButtonId: "buy_btn_1SrMdiRWjkV59RDtJSg3LKLh",
+  },
 ]
 
 export default function HomePage() {
@@ -762,19 +805,25 @@ export default function HomePage() {
                 <div className="text-4xl mb-4">{service.icon}</div>
                 <h3 className="text-xl font-bold mb-2">{t[service.key as keyof typeof t]}</h3>
                 <p className="text-zinc-500 mb-4 text-sm">{t[`${service.key}Desc` as keyof typeof t]}</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-zinc-500 text-sm">{service.from ? t.from : ""}</span>
-                    <span className="text-2xl font-bold text-blue-400 ml-1">${service.price}</span>
-                    {service.oneTime && <span className="text-xs text-zinc-500 ml-2">({t.oneTime})</span>}
-                  </div>
+                <div className="mb-4">
+                  <span className="text-zinc-500 text-sm">{service.from ? t.from : ""}</span>
+                  <span className="text-2xl font-bold text-blue-400 ml-1">${service.price}</span>
+                  {service.oneTime && <span className="text-xs text-zinc-500 ml-2">({t.oneTime})</span>}
+                </div>
+                <div className="flex flex-col gap-2">
                   <button
                     onClick={() => addToCart(service.key, service.price)}
-                    className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/40 border border-blue-500/30 rounded-lg text-blue-400 font-medium transition-all duration-300 text-sm flex items-center gap-2"
+                    className="w-full px-4 py-2 bg-blue-500/20 hover:bg-blue-500/40 border border-blue-500/30 rounded-lg text-blue-400 font-medium transition-all duration-300 text-sm flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     {t.addToCart}
                   </button>
+                  <div className="stripe-buy-button-container">
+                    <stripe-buy-button
+                      buy-button-id={service.stripeBuyButtonId}
+                      publishable-key="pk_live_51SrLxnRWjkV59RDtBaObW0jb9DdZhb414JJkOPQOG92nB97xhJazBtMXhwZj5L6eAWFeNPEw8QhQLZeqV1ZZW7t200BV4dC842"
+                    ></stripe-buy-button>
+                  </div>
                 </div>
               </div>
             ))}

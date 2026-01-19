@@ -221,3 +221,50 @@
     opacity: 0.5;
   }
 }
+
+/* Stripe Buy Button Customization */
+stripe-buy-button {
+  --stripe-bg-color: rgba(59, 130, 246, 0.1) !important;
+  --stripe-border-color: rgba(59, 130, 246, 0.3) !important;
+  --stripe-text-color: rgb(96, 165, 250) !important;
+  display: block;
+  width: 100%;
+}
+
+stripe-buy-button::part(button) {
+  background: rgba(59, 130, 246, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  border-radius: 0.5rem !important;
+  color: rgb(96, 165, 250) !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1rem !important;
+  width: 100% !important;
+  transition: all 0.3s !important;
+  font-size: 0.875rem !important;
+}
+
+stripe-buy-button::part(button):hover {
+  background: rgba(59, 130, 246, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Cloudflare Turnstile Dark Theme */
+.cf-turnstile {
+  margin: 0 auto;
+}
+
+/* Language Selector Animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.language-selector {
+  animation: fade-in-up 0.6s ease-out;
+}
