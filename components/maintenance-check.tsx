@@ -71,7 +71,10 @@ export function MaintenanceCheck({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (isMaintenanceMode) {
+  // Allow admin routes to bypass maintenance
+  const isAdminRoute = pathname.startsWith("/admin-dashboard-management-panel") || pathname.startsWith("/dashboard") || pathname.startsWith("/2fa") || pathname.startsWith("/login")
+  
+  if (isMaintenanceMode && !isAdminRoute) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
         <div className="text-center max-w-md mx-auto">

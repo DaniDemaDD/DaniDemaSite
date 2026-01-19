@@ -907,7 +907,7 @@ export default function HomePage() {
               width="380"
               height="82"
               style={{ border: 0 }}
-              src="https://climate.stripe.com/badge/oTZgGj?theme=dark&size=large&locale=it-IT"
+              src="https://climate.stripe.com/badge/6jbMva?theme=dark&size=large&locale=it-IT"
               title="Stripe Climate Badge"
             ></iframe>
           </div>
