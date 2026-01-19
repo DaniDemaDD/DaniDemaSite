@@ -905,9 +905,9 @@ export default function HomePage() {
           <div className="flex flex-col items-center gap-6 mb-6">
             <iframe
               width="380"
-              height="38"
+              height="82"
               style={{ border: 0 }}
-              src="https://climate.stripe.com/badge/oTZgGj?theme=light&size=small&locale=it-IT"
+              src="https://climate.stripe.com/badge/oTZgGj?theme=dark&size=large&locale=it-IT"
               title="Stripe Climate Badge"
             ></iframe>
           </div>
