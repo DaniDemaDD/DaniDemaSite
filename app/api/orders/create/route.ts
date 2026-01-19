@@ -15,12 +15,31 @@ function generatePDF(orderData: {
   name: string
   email: string
   discord: string
-  service: string
-  price: string
+  items: { key: string; price: number; quantity: number }[]
+  total: number
   details: string
   date: string
 }): string {
-  // Generate a simple text-based receipt (in production, use a proper PDF library)
+  const serviceDescriptions: Record<string, string> = {
+    discordBots: "Discord Bot - Custom bot development starting from $3",
+    websites: "Website - Professional website without domain ($7)",
+    websitesWithDomain: "Website + Domain - Complete website with custom domain ($12)",
+    accounts: "Email Account - Custom @sl4ve.xyz or @danidema.xyz account ($3)",
+    emails: "Custom Email - Personalized @lol.danidema.xyz or @ilove.sl4ve.xyz ($0.99)",
+    hosting: "Hosting Forever - One-time payment lifetime hosting ($15)",
+    removeBranding: "Remove Branding - Remove 'Made by DaniDema' from your bot ($7)",
+  }
+
+  let itemsList = ""
+  orderData.items.forEach((item) => {
+    const desc = serviceDescriptions[item.key] || item.key
+    itemsList += `
+  - ${desc}
+    Quantity: ${item.quantity}
+    Price: $${(item.price * item.quantity).toFixed(2)}
+`
+  })
+
   const content = `
 =====================================
         DANIDEMA ORDER RECEIPT
@@ -37,26 +56,50 @@ Email: ${orderData.email}
 Discord: ${orderData.discord}
 
 -------------------------------------
-ORDER DETAILS
+PURCHASED ITEMS
 -------------------------------------
-Service: ${orderData.service}
-Price: ${orderData.price}
+${itemsList}
 
-Request Details:
+TOTAL: $${orderData.total.toFixed(2)}
+
+-------------------------------------
+CUSTOM REQUEST DETAILS
+-------------------------------------
 ${orderData.details}
 
 -------------------------------------
-PAYMENT INSTRUCTIONS
+WHAT YOU'RE BUYING
 -------------------------------------
-1. Contact dani.dema on Discord
-2. Provide your order code
-3. Complete payment via PayPal
-4. Receive your service!
+${orderData.items.map((item) => `• ${serviceDescriptions[item.key] || item.key}`).join("\n")}
 
 -------------------------------------
+PAYMENT REQUIRED
+-------------------------------------
+⚠️  IMPORTANT: PAYMENT IS REQUIRED  ⚠️
+
+This is a receipt for your order.
+Payment has NOT been completed yet.
+
+To complete your purchase:
+1. Contact dani.dema on Discord
+2. Provide this order code: ${orderData.orderCode}
+3. Complete payment via PayPal
+4. Once payment confirmed, receive your service!
+
+Payment Methods:
+- PayPal (preferred)
+- Other methods: contact for details
+
+-------------------------------------
+Developer Information
+-------------------------------------
+Developer: DaniDema
+Skills: Python, Node.js
+Email: support@danidema.xyz
+Discord: dani.dema
+Community: discord.gg/BTWsXaUme3
+
 Made by DaniDema ❤️
-support@danidema.xyz
-discord.gg/BTWsXaUme3
 =====================================
 `
   return content
@@ -65,14 +108,14 @@ discord.gg/BTWsXaUme3
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, discord, service, price, details, turnstileToken, language } = body
+    const { name, email, discord, items, total, details, turnstileToken, language } = body
 
     // Verify Turnstile token
     const turnstileResponse = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        secret: process.env.TURNSTILE_SECRET_KEY || "0x4AAAAAAA0qKqj-bQsDd7W_", // Replace with your secret
+        secret: process.env.TURNSTILE_SECRET_KEY || "0x4AAAAAACKFFDfhkJrzsZtIMccGMzcPLAQ",
         response: turnstileToken,
       }),
     })
@@ -104,8 +147,8 @@ export async function POST(request: NextRequest) {
       name,
       email,
       discord,
-      service: serviceNames[service] || service,
-      price,
+      items,
+      total,
       details,
       date,
     }
@@ -127,6 +170,13 @@ export async function POST(request: NextRequest) {
 
     // Send Discord webhook notification
     if (process.env.DISCORD_WEBHOOK_URL) {
+      const itemsText = items
+        .map((item: { key: string; quantity: number; price: number }) => {
+          const serviceName = serviceNames[item.key] || item.key
+          return `• ${serviceName} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`
+        })
+        .join("\n")
+
       await fetch(process.env.DISCORD_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -134,22 +184,31 @@ export async function POST(request: NextRequest) {
           embeds: [
             {
               title: "🛒 Nuovo Ordine Ricevuto!",
-              color: 0x9333ea,
+              color: 0x3b82f6,
               fields: [
                 { name: "📋 Codice Ordine", value: `\`${orderCode}\``, inline: false },
                 { name: "👤 Nome", value: name, inline: true },
                 { name: "📧 Email", value: email, inline: true },
                 { name: "💬 Discord", value: discord, inline: true },
-                { name: "🛍️ Servizio", value: serviceNames[service] || service, inline: true },
-                { name: "💰 Prezzo", value: price, inline: true },
                 {
-                  name: "📝 Dettagli",
-                  value: details.substring(0, 200) + (details.length > 200 ? "..." : ""),
+                  name: "🛍️ Articoli Acquistati",
+                  value: itemsText,
+                  inline: false,
+                },
+                { name: "💰 Totale", value: `$${total.toFixed(2)}`, inline: true },
+                {
+                  name: "📝 Dettagli Richiesta",
+                  value: details.substring(0, 300) + (details.length > 300 ? "..." : ""),
+                  inline: false,
+                },
+                {
+                  name: "⚠️ Stato Pagamento",
+                  value: "**IN ATTESA DI PAGAMENTO**\nContattare il cliente per completare il pagamento",
                   inline: false,
                 },
               ],
               timestamp: new Date().toISOString(),
-              footer: { text: "DaniDema Orders" },
+              footer: { text: "DaniDema Orders - Payment Required" },
             },
           ],
         }),
