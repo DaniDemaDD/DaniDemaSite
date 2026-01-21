@@ -539,14 +539,6 @@ const services = [
     from: false,
     stripeBuyButtonId: "buy_btn_1SrMdiRWjkV59RDtJSg3LKLh",
   },
-  {
-    key: "customService",
-    price: 0,
-    icon: "💎",
-    from: false,
-    custom: true,
-    stripeBuyButtonId: "buy_btn_1Ss4nURWjkV59RDtelZFPFFU",
-  },
 ]
 
 export default function HomePage() {
@@ -859,15 +851,9 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold mb-2">{t[service.key as keyof typeof t]}</h3>
                 <p className="text-zinc-500 mb-4 text-sm">{t[`${service.key}Desc` as keyof typeof t]}</p>
                 <div className="mb-4">
-                  {service.custom ? (
-                    <span className="text-lg font-bold text-purple-400">{t.contactForPrice}</span>
-                  ) : (
-                    <>
-                      <span className="text-zinc-500 text-sm">{service.from ? t.from : ""}</span>
-                      <span className="text-2xl font-bold text-blue-400 ml-1">${service.price}</span>
-                      {service.oneTime && <span className="text-xs text-zinc-500 ml-2">({t.oneTime})</span>}
-                    </>
-                  )}
+                  <span className="text-zinc-500 text-sm">{service.from ? t.from : ""}</span>
+                  <span className="text-2xl font-bold text-blue-400 ml-1">${service.price}</span>
+                  {service.oneTime && <span className="text-xs text-zinc-500 ml-2">({t.oneTime})</span>}
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
@@ -886,6 +872,29 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Custom Project Section - Separate Category */}
+          <div className="mt-16 max-w-3xl mx-auto">
+            <div className="relative bg-gradient-to-r from-purple-900/30 via-pink-900/30 to-purple-900/30 rounded-3xl p-8 border border-purple-500/30 overflow-hidden">
+              <div className="absolute inset-0 bg-[url('/abstract-geometric-pattern.png')] opacity-5"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="text-5xl">💎</div>
+                  <h3 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    {t.customService}
+                  </h3>
+                </div>
+                <p className="text-center text-zinc-400 mb-6 text-lg">{t.customServiceDesc}</p>
+                <p className="text-center text-purple-400 font-bold mb-6 text-xl">{t.contactForPrice}</p>
+                <div className="flex justify-center">
+                  <stripe-buy-button
+                    buy-button-id="buy_btn_1Ss4nURWjkV59RDtelZFPFFU"
+                    publishable-key="pk_live_51SrLxnRWjkV59RDtBaObW0jb9DdZhb414JJkOPQOG92nB97xhJazBtMXhwZj5L6eAWFeNPEw8QhQLZeqV1ZZW7t200BV4dC842"
+                  ></stripe-buy-button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
