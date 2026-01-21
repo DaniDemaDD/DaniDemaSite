@@ -494,6 +494,7 @@ const services = [
     price: 3,
     icon: "🤖",
     from: true,
+    paymentType: "one_time",
     stripeBuyButtonId: "buy_btn_1SrMhVRWjkV59RDtQF4GYKN0",
   },
   {
@@ -501,6 +502,7 @@ const services = [
     price: 7,
     icon: "🌐",
     from: false,
+    paymentType: "one_time",
     stripeBuyButtonId: "buy_btn_1SrMiqRWjkV59RDtQ5MMjw0e",
   },
   {
@@ -508,6 +510,7 @@ const services = [
     price: 12,
     icon: "🔗",
     from: false,
+    paymentType: "monthly",
     stripeBuyButtonId: "buy_btn_1SrMkgRWjkV59RDtsrUHlAkD",
   },
   {
@@ -515,6 +518,7 @@ const services = [
     price: 3,
     icon: "👤",
     from: false,
+    paymentType: "monthly",
     stripeBuyButtonId: "buy_btn_1SrMljRWjkV59RDtDyOh1ono",
   },
   {
@@ -522,6 +526,7 @@ const services = [
     price: 0.99,
     icon: "📧",
     from: false,
+    paymentType: "monthly",
     stripeBuyButtonId: "buy_btn_1SrMmzRWjkV59RDt2h1sTT1W",
   },
   {
@@ -529,7 +534,7 @@ const services = [
     price: 15,
     icon: "🚀",
     from: false,
-    oneTime: true,
+    paymentType: "yearly",
     stripeBuyButtonId: "buy_btn_1SrMnlRWjkV59RDtVMr6himC",
   },
   {
@@ -537,6 +542,7 @@ const services = [
     price: 7,
     icon: "✨",
     from: false,
+    paymentType: "monthly",
     stripeBuyButtonId: "buy_btn_1SrMdiRWjkV59RDtJSg3LKLh",
   },
 ]

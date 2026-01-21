@@ -131,6 +131,7 @@ export function OrderContent() {
   const [turnstileToken, setTurnstileToken] = useState("")
   const [turnstileLoaded, setTurnstileLoaded] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmittingStripe, setIsSubmittingStripe] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [orderCode, setOrderCode] = useState("")
   const [pdfUrl, setPdfUrl] = useState("")
@@ -183,6 +184,8 @@ export function OrderContent() {
       madeBy: "Made by DaniDema",
       emptyCart: "Il carrello è vuoto",
       yourOrder: "Il tuo ordine",
+      payNow: "Paga Ora con Stripe",
+      processingPayment: "Elaborazione...",
     },
     en: {
       title: "Checkout",
@@ -206,6 +209,8 @@ export function OrderContent() {
       madeBy: "Made by DaniDema",
       emptyCart: "Cart is empty",
       yourOrder: "Your order",
+      payNow: "Pay Now with Stripe",
+      processingPayment: "Processing...",
     },
   }
 
@@ -260,6 +265,62 @@ export function OrderContent() {
     navigator.clipboard.writeText(orderCode)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleStripeCheckout = async () => {
+    if (!formData.name || !formData.email || !formData.discord) {
+      alert(
+        language === "it"
+          ? "Compila tutti i campi richiesti prima di procedere al pagamento"
+          : "Fill in all required fields before proceeding to payment",
+      )
+      return
+    }
+
+    setIsSubmittingStripe(true)
+
+    try {
+      // Get payment types for each item
+      const servicesWithPaymentType = cartItems.map((item) => {
+        const serviceConfig: Record<string, string> = {
+          discordBots: "one_time",
+          websites: "one_time",
+          websitesWithDomain: "monthly",
+          accounts: "monthly",
+          emails: "monthly",
+          hosting: "yearly",
+          removeBranding: "monthly",
+        }
+        return {
+          ...item,
+          paymentType: serviceConfig[item.key] || "one_time",
+        }
+      })
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: servicesWithPaymentType,
+          customerEmail: formData.email,
+          customerName: formData.name,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url
+      } else {
+        alert(language === "it" ? "Errore nella creazione del checkout" : "Error creating checkout")
+      }
+    } catch (error) {
+      console.error("[v0] Stripe checkout error:", error)
+      alert(language === "it" ? "Errore nel pagamento" : "Payment error")
+    } finally {
+      setIsSubmittingStripe(false)
+    }
   }
 
   if (orderComplete) {
@@ -443,7 +504,7 @@ export function OrderContent() {
               <button
                 type="submit"
                 disabled={isSubmitting || !turnstileToken}
-                className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                className="w-full bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -453,6 +514,17 @@ export function OrderContent() {
                 ) : (
                   labels.submit
                 )}
+              </button>
+
+              {/* Stripe Checkout Button */}
+              <button
+                type="button"
+                onClick={handleStripeCheckout}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <>
+                  💳 {labels.payNow}
+                </>
               </button>
             </form>
 
