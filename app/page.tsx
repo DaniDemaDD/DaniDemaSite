@@ -44,6 +44,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Hosting permanente, paghi una volta sola",
     removeBranding: "Rimuovi Branding",
     removeBrandingDesc: 'Rimuovi "Made by DaniDema ❤️" dai tuoi prodotti',
+    customService: "Servizio Personalizzato",
+    customServiceDesc: "Progetto su misura - prezzo definito da DaniDema",
+    contactForPrice: "Contatta per Prezzo",
     from: "Da",
     oneTime: "Una tantum",
     addToCart: "Aggiungi",
@@ -87,6 +90,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Permanent hosting, pay once",
     removeBranding: "Remove Branding",
     removeBrandingDesc: 'Remove "Made by DaniDema ❤️" from your products',
+    customService: "Custom Service",
+    customServiceDesc: "Custom project - price defined by DaniDema",
+    contactForPrice: "Contact for Price",
     from: "From",
     oneTime: "One time",
     addToCart: "Add",
@@ -130,6 +136,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Permanentes Hosting, einmalig zahlen",
     removeBranding: "Branding entfernen",
     removeBrandingDesc: '"Made by DaniDema ❤️" von deinen Produkten entfernen',
+    customService: "Individueller Service",
+    customServiceDesc: "Individuelles Projekt - Preis von DaniDema definiert",
+    contactForPrice: "Für Preis kontaktieren",
     from: "Ab",
     oneTime: "Einmalig",
     addToCart: "Hinzufügen",
@@ -173,6 +182,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Hébergement permanent, payez une fois",
     removeBranding: "Retirer le Branding",
     removeBrandingDesc: 'Retirer "Made by DaniDema ❤️" de vos produits',
+    customService: "Service Personnalisé",
+    customServiceDesc: "Projet sur mesure - prix défini par DaniDema",
+    contactForPrice: "Contactez pour le Prix",
     from: "À partir de",
     oneTime: "Une fois",
     addToCart: "Ajouter",
@@ -216,6 +228,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Hosting permanente, paga una vez",
     removeBranding: "Eliminar Branding",
     removeBrandingDesc: 'Eliminar "Made by DaniDema ❤️" de tus productos',
+    customService: "Servicio Personalizado",
+    customServiceDesc: "Proyecto personalizado - precio definido por DaniDema",
+    contactForPrice: "Contactar para Precio",
     from: "Desde",
     oneTime: "Una vez",
     addToCart: "Añadir",
@@ -259,6 +274,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Hosting permanente, pague uma vez",
     removeBranding: "Remover Branding",
     removeBrandingDesc: 'Remover "Made by DaniDema ❤️" dos seus produtos',
+    customService: "Serviço Personalizado",
+    customServiceDesc: "Projeto personalizado - preço definido por DaniDema",
+    contactForPrice: "Contacte para Preço",
     from: "A partir de",
     oneTime: "Uma vez",
     addToCart: "Adicionar",
@@ -302,6 +320,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Permanente hosting, betaal eenmalig",
     removeBranding: "Branding Verwijderen",
     removeBrandingDesc: '"Made by DaniDema ❤️" van je producten verwijderen',
+    customService: "Aangepaste Service",
+    customServiceDesc: "Aangepast project - prijs bepaald door DaniDema",
+    contactForPrice: "Contacteer voor Prijs",
     from: "Vanaf",
     oneTime: "Eenmalig",
     addToCart: "Toevoegen",
@@ -345,6 +366,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Stały hosting, zapłać raz",
     removeBranding: "Usuń Branding",
     removeBrandingDesc: 'Usuń "Made by DaniDema ❤️" z Twoich produktów',
+    customService: "Usługa Niestandardowa",
+    customServiceDesc: "Niestandardowy projekt - cena określona przez DaniDema",
+    contactForPrice: "Skontaktuj się w Sprawie Ceny",
     from: "Od",
     oneTime: "Jednorazowo",
     addToCart: "Dodaj",
@@ -388,6 +412,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "Постоянный хостинг, оплата один раз",
     removeBranding: "Убрать Брендинг",
     removeBrandingDesc: 'Убрать "Made by DaniDema ❤️" с ваших продуктов',
+    customService: "Индивидуальная Услуга",
+    customServiceDesc: "Индивидуальный проект - цена определяется DaniDema",
+    contactForPrice: "Связаться для Цены",
     from: "От",
     oneTime: "Разово",
     addToCart: "Добавить",
@@ -431,6 +458,9 @@ const translations: Record<Language, Record<string, string>> = {
     hostingDesc: "永久ホスティング、一度だけ支払い",
     removeBranding: "ブランディング削除",
     removeBrandingDesc: '製品から"Made by DaniDema ❤️"を削除',
+    customService: "カスタムサービス",
+    customServiceDesc: "カスタムプロジェクト - DaniDemaが価格を決定",
+    contactForPrice: "価格についてお問い合わせ",
     from: "から",
     oneTime: "一回限り",
     addToCart: "追加",
@@ -508,6 +538,14 @@ const services = [
     icon: "✨",
     from: false,
     stripeBuyButtonId: "buy_btn_1SrMdiRWjkV59RDtJSg3LKLh",
+  },
+  {
+    key: "customService",
+    price: 0,
+    icon: "💎",
+    from: false,
+    custom: true,
+    stripeBuyButtonId: "buy_btn_1Ss4nURWjkV59RDtelZFPFFU",
   },
 ]
 
@@ -821,9 +859,15 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold mb-2">{t[service.key as keyof typeof t]}</h3>
                 <p className="text-zinc-500 mb-4 text-sm">{t[`${service.key}Desc` as keyof typeof t]}</p>
                 <div className="mb-4">
-                  <span className="text-zinc-500 text-sm">{service.from ? t.from : ""}</span>
-                  <span className="text-2xl font-bold text-blue-400 ml-1">${service.price}</span>
-                  {service.oneTime && <span className="text-xs text-zinc-500 ml-2">({t.oneTime})</span>}
+                  {service.custom ? (
+                    <span className="text-lg font-bold text-purple-400">{t.contactForPrice}</span>
+                  ) : (
+                    <>
+                      <span className="text-zinc-500 text-sm">{service.from ? t.from : ""}</span>
+                      <span className="text-2xl font-bold text-blue-400 ml-1">${service.price}</span>
+                      {service.oneTime && <span className="text-xs text-zinc-500 ml-2">({t.oneTime})</span>}
+                    </>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
@@ -903,13 +947,28 @@ export default function HomePage() {
       <footer className="relative py-8 px-4 border-t border-zinc-800">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col items-center gap-6 mb-6">
-            <iframe
-              width="380"
-              height="82"
-              style={{ border: 0 }}
-              src="https://climate.stripe.com/badge/oTZgGj?theme=dark&size=large&locale=it-IT"
-              title="Stripe Climate Badge"
-            ></iframe>
+            <a
+              href="https://climate.stripe.com/6jbMva"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block hover:opacity-80 transition-opacity cursor-pointer"
+            >
+              <iframe
+                width="380"
+                height="82"
+                style={{ border: 0, pointerEvents: "none" }}
+                src="https://climate.stripe.com/badge/oTZgGj?theme=dark&size=large&locale=it-IT"
+                title="Stripe Climate Badge"
+              ></iframe>
+            </a>
+            <a
+              href="https://store.danidema.xyz/b/aFa7sN2Wm8UueIi1wtbEA05"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-3 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 rounded-xl font-bold text-white transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+            >
+              Donazione <Heart className="w-5 h-5 fill-white" />
+            </a>
           </div>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-zinc-500">
